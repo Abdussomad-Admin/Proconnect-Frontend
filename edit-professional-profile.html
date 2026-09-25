@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="Styles/edit-professional-profile.css" />
   <link rel="stylesheet" href="Styles/dashboard.css" />
   <link rel="stylesheet" href="Styles/profile-overview.css" />
+  <link rel="stylesheet" href="Styles/skill-search.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.44.0/tabler-icons.min.css" />
 </head>
 <body data-page="profile-edit">
@@ -255,11 +256,38 @@
               <div class="ep-panel__head">
                 <h3>Skills</h3>
               </div>
-              <p class="ep-panel__sub ep-notice">
-                Adding new skills isn't available yet — this section needs a skill lookup that hasn't been built.
-                You can remove existing skills below.
-              </p>
-              <div id="skills-manage-list" class="chip-list"></div>
+              <p class="ep-panel__sub">Search for a skill you already have, or create a new one if it isn't listed yet.</p>
+
+              <div class="ep-field-row">
+                <div class="ep-field" style="position: relative;">
+                  <label for="skill-search-input">Skill</label>
+                  <input type="text" id="skill-search-input" placeholder="Start typing a skill (e.g. React)" autocomplete="off" />
+                  <div id="skill-search-results" class="skill-search-results" hidden></div>
+                </div>
+                <div class="ep-field">
+                  <label for="skill-level-select">Level</label>
+                  <select id="skill-level-select">
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate" selected>Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                    <option value="Expert">Expert</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="ep-field-row">
+                <div class="ep-field">
+                  <label for="skill-years-input">Years of experience</label>
+                  <input type="number" id="skill-years-input" min="0" max="50" value="1" />
+                </div>
+                <div class="ep-field" style="display: flex; align-items: flex-end;">
+                  <button type="button" class="btn-primary btn-compact" id="add-skill-btn" disabled>
+                    <i class="ti ti-plus" aria-hidden="true"></i> Add Skill
+                  </button>
+                </div>
+              </div>
+
+              <div id="skills-manage-list" class="chip-list" style="margin-top: 14px;"></div>
             </section>
 
             <!-- Certifications -->

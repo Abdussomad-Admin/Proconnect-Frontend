@@ -1,0 +1,67 @@
+/* ==========================================================================
+   Skill search autocomplete — additive styles for the Edit Profile Skills
+   tab. Either link this file directly after edit-professional-profile.css,
+   or fold these rules into that file — whichever you prefer.
+   ========================================================================== */
+
+.skill-search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--pc-surface);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius);
+  box-shadow: 0 10px 30px -10px rgba(30, 20, 80, 0.2);
+  z-index: 15;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.skill-search-result-item {
+  padding: 8px 12px;
+  font-size: 12.5px;
+  cursor: pointer;
+  color: var(--pc-text-primary);
+}
+
+.skill-search-result-item:hover {
+  background: var(--pc-panel-bg);
+}
+
+.skill-search-result-item--create {
+  color: var(--pc-purple);
+  font-weight: 600;
+  border-top: 1px solid var(--pc-border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.skill-search-empty {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--pc-text-muted);
+}
+
+.chip-removable {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chip-removable button {
+  border: none;
+  background: none;
+  color: var(--pc-purple);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.chip-removable button:hover {
+  opacity: 1;
+}

@@ -310,6 +310,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Feed = the visitor's existing network/connections presence, so every
+  // link into post-detail.html from here is tagged "network" — distinct
+  // from "search" (job-search.html) and "other" (algorithmic suggestions).
+  function postDetailHref(postId) {
+    return `post-detail.html?postId=${postId}&ref=network`;
+  }
+
   function renderMediaGrid(urls, cssClass, linkPostId) {
     if (!urls || urls.length === 0) return "";
 
@@ -321,7 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return `<video src="${escapeHtml(url)}" controls></video>`;
         }
         const img = `<img src="${escapeHtml(url)}" alt="" />`;
-        return linkPostId ? `<a href="post-detail.html?postId=${linkPostId}">${img}</a>` : img;
+        return linkPostId ? `<a href="${postDetailHref(linkPostId)}">${img}</a>` : img;
       })
       .join("");
 
@@ -408,7 +415,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <div data-post-view-content>
-        ${post.content ? `<p class="post-card__content"><a href="post-detail.html?postId=${post.id}" class="post-card__content-link">${escapeHtml(post.content)}</a></p>` : ""}
+        ${post.content ? `<p class="post-card__content"><a href="${postDetailHref(post.id)}" class="post-card__content-link">${escapeHtml(post.content)}</a></p>` : ""}
         ${renderMediaGrid(post.attachmentUrls, "post-card__media", post.id)}
         ${renderSharedPost(post.sharedPost)}
         </div>
@@ -416,7 +423,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="post-card__stats">
           ${renderReactionSummary(post)}
           <div class="post-card__stats-right">
-            <a href="post-detail.html?postId=${post.id}" data-action="stats-comments-link">${post.commentsCount} comment${post.commentsCount === 1 ? "" : "s"}</a>
+            <a href="${postDetailHref(post.id)}" data-action="stats-comments-link">${post.commentsCount} comment${post.commentsCount === 1 ? "" : "s"}</a>
             <span>${post.sharesCount} share${post.sharesCount === 1 ? "" : "s"}</span>
           </div>
         </div>
@@ -643,7 +650,7 @@ document.addEventListener("DOMContentLoaded", () => {
       statsBar.innerHTML = `
         ${renderReactionSummary(post)}
         <div class="post-card__stats-right">
-          <a href="post-detail.html?postId=${postId}" data-action="stats-comments-link">${post.commentsCount} comment${post.commentsCount === 1 ? "" : "s"}</a>
+          <a href="${postDetailHref(postId)}" data-action="stats-comments-link">${post.commentsCount} comment${post.commentsCount === 1 ? "" : "s"}</a>
           <span>${post.sharesCount} share${post.sharesCount === 1 ? "" : "s"}</span>
         </div>`;
       // No re-wiring needed here — the "N comments" element is now a plain

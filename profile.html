@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile - ProConnect</title>
+  <link rel="stylesheet" href="Styles/dashboard.css" />
+  <link rel="stylesheet" href="Styles/profile.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.44.0/tabler-icons.min.css" />
+</head>
+<body data-page="profile">
+
+  <div class="app-shell">
+
+    <div id="sidebar-root"></div>
+
+    <main class="app-main">
+
+      <header class="app-topbar">
+        <div class="app-search">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input type="text" placeholder="Search jobs, candidates, people, or companies..." />
+        </div>
+
+        <div class="app-topbar__icons">
+          <div class="topbar-user" id="topbar-user-toggle">
+            <img id="topbar-avatar" hidden alt="" />
+            <span id="topbar-name">—</span>
+            <i class="ti ti-chevron-down" aria-hidden="true"></i>
+          </div>
+
+          <div class="dropdown-menu" id="topbar-dropdown">
+            <a href="profile-overview.html" class="dropdown-menu__item"><i class="ti ti-user" aria-hidden="true"></i> View Profile</a>
+            <a href="#" class="dropdown-menu__item"><i class="ti ti-settings" aria-hidden="true"></i> Settings</a>
+            <button type="button" class="dropdown-menu__item dropdown-menu__item--danger" id="topbar-logout"><i class="ti ti-logout" aria-hidden="true"></i> Log out</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="app-content">
+
+        <div class="loading-state" id="loading-state">Loading profile...</div>
+        <div class="form-alert" id="form-alert" role="alert" hidden></div>
+
+        <div class="profile-view-layout" id="profile-view-layout" hidden>
+
+          <div class="profile-view-main">
+
+            <div class="cover-card">
+              <div class="cover-card__banner" id="cover-banner"></div>
+              <div class="cover-card__body">
+                <div class="cover-card__avatar-wrap">
+                  <div class="cover-card__avatar" id="profile-avatar"></div>
+                  <span class="presence-dot" id="presence-dot" hidden></span>
+                </div>
+
+                <div class="cover-card__info">
+                  <div class="cover-card__name-row">
+                    <h2 id="profile-name">—</h2>
+                    <i class="ti ti-rosette-discount-check verified-icon" id="verified-icon" aria-hidden="true" hidden></i>
+                  </div>
+                  <p id="profile-headline" class="cover-card__headline">—</p>
+                  <div class="cover-card__meta" id="profile-meta"></div>
+                </div>
+
+                <div class="cover-card__actions">
+                  <button type="button" class="btn-primary btn-compact" id="connect-btn">
+                    <i class="ti ti-user-plus" aria-hidden="true"></i> <span id="connect-btn-label">Connect</span>
+                  </button>
+                  <button type="button" class="btn-outline btn-compact" id="message-btn">Message</button>
+                  <div class="dropdown-wrap" id="cover-more-toggle">
+                    <button type="button" class="icon-btn icon-btn--ghost" title="More options"><i class="ti ti-dots" aria-hidden="true"></i></button>
+                    <div class="dropdown-menu dropdown-menu--right" id="cover-more-dropdown">
+                      <button type="button" class="dropdown-menu__item" disabled title="Coming soon"><i class="ti ti-bookmark" aria-hidden="true"></i> Save Profile</button>
+                      <button type="button" class="dropdown-menu__item dropdown-menu__item--danger" disabled title="Coming soon"><i class="ti ti-flag" aria-hidden="true"></i> Report Profile</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <nav class="profile-tabs" id="profile-tabs">
+                <button class="profile-tab is-active" data-tab="overview">Overview</button>
+                <button class="profile-tab" data-tab="experience" data-professional-only>Experience</button>
+                <button class="profile-tab" data-tab="education" data-professional-only>Education</button>
+                <button class="profile-tab" data-tab="skills" data-professional-only>Skills</button>
+                <button class="profile-tab" data-tab="activity">Activity</button>
+              </nav>
+            </div>
+
+            <!-- Overview tab -->
+            <section class="tab-panel is-active" data-tab-panel="overview">
+
+              <div class="card">
+                <h3>About Me</h3>
+                <p id="about-text" class="about-text clamp-3">—</p>
+                <button class="link-btn" id="about-toggle" hidden>Show more</button>
+              </div>
+
+              <div class="card">
+                <div class="quick-facts-grid" id="quick-facts-grid"></div>
+              </div>
+
+              <div class="card" id="experience-preview-card" data-professional-only hidden>
+                <div class="card-header">
+                  <h3>Experience</h3>
+                  <button type="button" class="view-all-link" data-goto-tab="experience">View all</button>
+                </div>
+                <div id="experience-preview-list" class="timeline-list"></div>
+              </div>
+
+              <div class="card" id="education-preview-card" data-professional-only hidden>
+                <div class="card-header">
+                  <h3>Education</h3>
+                  <button type="button" class="view-all-link" data-goto-tab="education">View all</button>
+                </div>
+                <div id="education-preview-list" class="timeline-list"></div>
+              </div>
+
+            </section>
+
+            <!-- Experience tab -->
+            <section class="tab-panel" data-tab-panel="experience" data-professional-only hidden>
+              <div class="card">
+                <h3>Experience</h3>
+                <div id="experience-full-list" class="timeline-list"></div>
+              </div>
+            </section>
+
+            <!-- Education tab -->
+            <section class="tab-panel" data-tab-panel="education" data-professional-only hidden>
+              <div class="card">
+                <h3>Education</h3>
+                <div id="education-full-list" class="timeline-list"></div>
+              </div>
+            </section>
+
+            <!-- Skills tab -->
+            <section class="tab-panel" data-tab-panel="skills" data-professional-only hidden>
+              <div class="card">
+                <h3>Skills</h3>
+                <div id="skills-full-list" class="chip-list"></div>
+              </div>
+            </section>
+
+            <!-- Activity tab -->
+            <section class="tab-panel" data-tab-panel="activity">
+              <div class="card">
+                <h3>Recent Activity</h3>
+                <div id="activity-list" class="activity-list">
+                  <p class="app-loading-inline">Loading activity...</p>
+                </div>
+                <p class="empty-hint" id="activity-empty" hidden>No recent activity yet.</p>
+              </div>
+            </section>
+
+          </div>
+
+          <aside class="profile-view-sidebar">
+
+            <div class="card">
+              <h3>Profile Actions</h3>
+              <button type="button" class="btn-primary btn-block" id="sidebar-connect-btn">
+                <i class="ti ti-user-plus" aria-hidden="true"></i> <span id="sidebar-connect-label">Add to My Network</span>
+              </button>
+              <button type="button" class="btn-outline btn-block" id="sidebar-message-btn">
+                <i class="ti ti-message-circle" aria-hidden="true"></i> Send Message
+              </button>
+              <button type="button" class="btn-outline btn-block" disabled title="Coming soon">
+                <i class="ti ti-bookmark" aria-hidden="true"></i> Save Profile
+              </button>
+              <button type="button" class="btn-outline btn-block btn-outline--danger" disabled title="Coming soon">
+                <i class="ti ti-flag" aria-hidden="true"></i> Report Profile
+              </button>
+            </div>
+
+            <div class="card">
+              <h3>Contact Information</h3>
+              <ul class="detail-list" id="contact-info-list"></ul>
+            </div>
+
+            <div class="card" id="social-links-card" hidden>
+              <h3>Social Links</h3>
+              <ul class="social-link-list" id="social-links-list"></ul>
+            </div>
+
+            <div class="card" id="skills-sidebar-card" data-professional-only hidden>
+              <h3>Skills</h3>
+              <div class="chip-list" id="skills-sidebar-list"></div>
+            </div>
+
+            <div class="card" id="company-card" hidden>
+              <h3>Company</h3>
+              <div class="connected-company" id="connected-company"></div>
+            </div>
+
+          </aside>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="Scripts/sidebar.js"></script>
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/profile.js"></script>
+</body>
+</html>

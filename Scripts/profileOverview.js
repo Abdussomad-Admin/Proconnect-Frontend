@@ -209,8 +209,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("verified-badge").hidden = !profile.isVerified;
 
+    // Points at the new generic view-profile page (profile.html), which
+    // works for viewing either a Professional or a Recruiter. profile.id
+    // here is the ProfessionalProfile's own id (not User.id) — profile.js
+    // needs both id and type to know which endpoint to call.
     const viewPublicLink = document.getElementById("view-public-profile-link");
-    if (viewPublicLink) viewPublicLink.href = `view-public-profile.html?id=${encodeURIComponent(profile.id)}`;
+    if (viewPublicLink) viewPublicLink.href = `profile.html?id=${encodeURIComponent(profile.id)}&type=professional`;
     document.getElementById("verified-label").hidden = !profile.isVerified;
 
     document.getElementById("profile-headline").textContent = profile.headLine || "No headline added yet";

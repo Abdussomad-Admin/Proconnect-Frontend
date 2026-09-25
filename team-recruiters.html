@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recruiter / Team · ProConnect</title>
+  <link rel="stylesheet" href="Styles/dashboard.css" />
+  <link rel="stylesheet" href="Styles/team-recruiters.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.44.0/tabler-icons.min.css" />
+</head>
+<body data-page="team-recruiters">
+
+  <div class="app-shell">
+
+    <div id="sidebar-root"></div>
+
+    <main class="app-main">
+
+      <header class="app-topbar">
+        <div class="app-search">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input type="text" placeholder="Search candidates, jobs, skills..." />
+        </div>
+        <div class="app-topbar__icons">
+          <div class="topbar-user" id="topbar-user-toggle">
+            <img id="topbar-avatar" hidden alt="" />
+            <span id="topbar-name">—</span>
+            <i class="ti ti-chevron-down" aria-hidden="true"></i>
+          </div>
+          <div class="dropdown-menu" id="topbar-dropdown">
+            <a href="recruiter-profile.html" class="dropdown-menu__item"><i class="ti ti-user" aria-hidden="true"></i> View Profile</a>
+            <button type="button" class="dropdown-menu__item dropdown-menu__item--danger" id="topbar-logout"><i class="ti ti-logout" aria-hidden="true"></i> Log out</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="app-content">
+
+        <a href="company-profile.html" class="tr-back-link"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back to Company Profile</a>
+
+        <div class="tr-header">
+          <h1 class="tr-title">Recruiter / Team</h1>
+          <p class="tr-subtitle">Manage your team members and control access to your company's recruiting activities.</p>
+        </div>
+
+        <div class="form-alert" id="form-alert" role="alert" hidden></div>
+
+        <div class="jm-loading" id="page-loading">
+          <span class="spinner spinner--dark"></span>
+          <span>Loading your team...</span>
+        </div>
+
+        <div id="pending-banner" class="tr-pending-banner" hidden>
+          <i class="ti ti-clock-hour-4" aria-hidden="true"></i>
+          <div>
+            <h3>Your request to join is pending approval</h3>
+            <p>Once a company admin approves your request, you'll have full access to team management.</p>
+          </div>
+        </div>
+
+        <div id="page-content" hidden>
+
+          <div class="card tr-banner-card">
+            <div class="tr-banner-card__left">
+              <span class="tr-banner-card__icon"><i class="ti ti-users-group" aria-hidden="true"></i></span>
+              <div>
+                <h2>Your Team</h2>
+                <p>Manage recruiters, assign roles, and collaborate to find the best talent.</p>
+              </div>
+            </div>
+            <button type="button" class="btn-primary btn-compact" id="add-member-btn">
+              <i class="ti ti-plus" aria-hidden="true"></i> Add Team Member
+            </button>
+          </div>
+
+          <div class="tr-stats-grid">
+            <div class="card tr-stat-card">
+              <span class="tr-stat-card__icon"><i class="ti ti-users" aria-hidden="true"></i></span>
+              <div><strong id="stat-total">0</strong><span>Total Members</span></div>
+            </div>
+            <div class="card tr-stat-card">
+              <span class="tr-stat-card__icon"><i class="ti ti-user" aria-hidden="true"></i></span>
+              <div><strong id="stat-recruiters">0</strong><span>Recruiters</span></div>
+            </div>
+            <div class="card tr-stat-card">
+              <span class="tr-stat-card__icon"><i class="ti ti-shield-check" aria-hidden="true"></i></span>
+              <div><strong id="stat-admins">0</strong><span>Admins</span></div>
+            </div>
+            <div class="card tr-stat-card">
+              <span class="tr-stat-card__icon"><i class="ti ti-mail" aria-hidden="true"></i></span>
+              <div><strong id="stat-pending">0</strong><span>Pending Invitation</span></div>
+            </div>
+          </div>
+
+          <div class="tr-layout">
+
+            <div class="card tr-main-card">
+
+              <div class="tr-main-card__header">
+                <h3>Team Members</h3>
+                <div class="tr-main-card__filters">
+                  <div class="app-search tr-search">
+                    <i class="ti ti-search" aria-hidden="true"></i>
+                    <input type="text" id="search-input" placeholder="Search team members..." />
+                  </div>
+                  <select id="role-filter" class="tr-select">
+                    <option value="">All Roles</option>
+                    <option value="admin">Admin</option>
+                    <option value="recruiter">Recruiter</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="jm-empty" id="team-empty" hidden>
+                <i class="ti ti-users" aria-hidden="true"></i>
+                <p><strong>No team members match your search.</strong></p>
+              </div>
+
+              <div class="tr-table-wrap" id="table-wrap" hidden>
+                <table class="jm-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Joined</th>
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="team-table-body"></tbody>
+                </table>
+              </div>
+
+              <div class="tr-pagination-row" id="pagination-row" hidden>
+                <span id="showing-info"></span>
+                <div class="sj-pagination" id="pagination"></div>
+              </div>
+
+            </div>
+
+            <aside class="tr-sidebar">
+
+              <div class="card" id="company-card" hidden>
+                <div class="tr-company-card__logo" id="company-logo"><i class="ti ti-building" aria-hidden="true"></i></div>
+                <div class="tr-company-card__name-row">
+                  <h3 id="company-name"></h3>
+                  <i class="ti ti-rosette-discount-check tr-verified" id="company-verified" hidden aria-hidden="true"></i>
+                </div>
+                <p class="tr-company-card__meta" id="company-meta"></p>
+                <div class="tr-company-card__details">
+                  <div><i class="ti ti-map-pin" aria-hidden="true"></i> <span id="company-location">—</span></div>
+                  <div><i class="ti ti-world" aria-hidden="true"></i> <a href="#" id="company-website" target="_blank" rel="noopener">—</a></div>
+                  <div><i class="ti ti-calendar" aria-hidden="true"></i> <span id="company-founded">—</span></div>
+                </div>
+                <p class="tr-company-card__desc" id="company-desc"></p>
+                <a href="#" class="btn-outline btn-compact tr-full-width" id="view-company-btn">View Company Profile</a>
+              </div>
+
+              <div class="card">
+                <h3 class="tr-sidebar-title">Quick Actions</h3>
+                <a href="company-profile.html" class="tr-quick-action">
+                  <span class="tr-quick-action__icon"><i class="ti ti-building" aria-hidden="true"></i></span>
+                  <div><strong>Manage Company Profile</strong><span>Update company information and settings</span></div>
+                </a>
+                <a href="team-recruiters.html" class="tr-quick-action">
+                  <span class="tr-quick-action__icon"><i class="ti ti-users" aria-hidden="true"></i></span>
+                  <div><strong>Manage Team</strong><span>Add or remove team members</span></div>
+                </a>
+                <a href="recruiter-analytics-dashboard.html" class="tr-quick-action">
+                  <span class="tr-quick-action__icon"><i class="ti ti-chart-bar" aria-hidden="true"></i></span>
+                  <div><strong>View Reports</strong><span>See hiring and recruitment analytics</span></div>
+                </a>
+              </div>
+
+              <div class="card">
+                <h3 class="tr-sidebar-title">Team Roles</h3>
+                <div class="tr-role-info">
+                  <i class="ti ti-shield-check" aria-hidden="true"></i>
+                  <div><strong>Admin</strong><span>Full access to all company features</span></div>
+                </div>
+                <div class="tr-role-info">
+                  <i class="ti ti-user" aria-hidden="true"></i>
+                  <div><strong>Recruiter</strong><span>Can manage jobs, candidates and interviews</span></div>
+                </div>
+                <div class="tr-role-info tr-role-info--note">
+                  <i class="ti ti-info-circle" aria-hidden="true"></i>
+                  <span>The Admin role is assigned automatically to whoever creates the company. It can't currently be reassigned.</span>
+                </div>
+              </div>
+
+            </aside>
+
+          </div>
+
+        </div>
+
+      </main>
+
+    </main>
+
+  </div>
+
+  <!-- ---------- Add Team Member (Invite) modal ---------- -->
+  <div class="jm-modal-overlay" id="invite-overlay" hidden>
+    <div class="jm-modal">
+      <h3>Add Team Member</h3>
+      <p>Send an invitation code to a colleague's email. They'll use it to request to join your company.</p>
+
+      <div class="ep-field">
+        <label for="invite-email">Email address <span class="req">*</span></label>
+        <input type="email" id="invite-email" placeholder="colleague@company.com" />
+        <span class="field-error" id="err-invite-email"></span>
+      </div>
+
+      <div class="tr-invite-result" id="invite-result" hidden>
+        <p>Invitation sent! Code (valid 7 days) — click to copy:</p>
+        <div class="tr-invite-code" id="invite-code"></div>
+      </div>
+
+      <div class="jm-modal__actions">
+        <button type="button" class="btn-outline btn-compact" id="invite-cancel">Close</button>
+        <button type="button" class="btn-primary btn-compact" id="invite-submit">Send Invitation</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- Row action confirm modal (Approve/Reject/Remove) ---------- -->
+  <div class="jm-modal-overlay" id="confirm-overlay" hidden>
+    <div class="jm-modal">
+      <h3 id="confirm-title">Are you sure?</h3>
+      <p id="confirm-message"></p>
+      <div class="jm-modal__actions">
+        <button type="button" class="btn-outline btn-compact" id="confirm-cancel">Cancel</button>
+        <button type="button" class="btn-primary btn-compact" id="confirm-ok">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- Row "more actions" menu ---------- -->
+  <div class="ap-row-menu" id="row-menu" hidden></div>
+
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/sidebar.js"></script>
+  <script src="Scripts/teamRecruiters.js"></script>
+</body>
+</html>

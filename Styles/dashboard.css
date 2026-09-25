@@ -63,6 +63,30 @@ a {
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* Thin purple scrollbar — Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(91, 63, 224, 0.35) transparent;
+}
+
+/* Thin purple scrollbar — Chrome / Edge / Safari */
+.sidebar::-webkit-scrollbar {
+  width: 2px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(91, 63, 224, 0.35);
+  border-radius: 999px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(91, 63, 224, 0.6);
 }
 
 .sidebar-brand {

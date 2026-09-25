@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Job Insights · ProConnect</title>
   <link rel="stylesheet" href="Styles/dashboard.css" />
+  <link rel="stylesheet" href="Styles/companyLayout.css" />
   <link rel="stylesheet" href="Styles/analytics-dashboard.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.44.0/tabler-icons.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
@@ -13,29 +14,13 @@
 
   <div class="app-shell">
 
-    <div id="sidebar-root"></div>
+    <aside id="app-sidebar"></aside>
 
-    <main class="app-main">
+    <div class="app-main">
 
-      <header class="app-topbar">
-        <div class="app-search">
-          <i class="ti ti-search" aria-hidden="true"></i>
-          <input type="text" placeholder="Search candidates, jobs, skills..." />
-        </div>
-        <div class="app-topbar__icons">
-          <div class="topbar-user" id="topbar-user-toggle">
-            <img id="topbar-avatar" hidden alt="" />
-            <span id="topbar-name">—</span>
-            <i class="ti ti-chevron-down" aria-hidden="true"></i>
-          </div>
-          <div class="dropdown-menu" id="topbar-dropdown">
-            <a href="recruiter-profile.html" class="dropdown-menu__item"><i class="ti ti-user" aria-hidden="true"></i> View Profile</a>
-            <button type="button" class="dropdown-menu__item dropdown-menu__item--danger" id="topbar-logout"><i class="ti ti-logout" aria-hidden="true"></i> Log out</button>
-          </div>
-        </div>
-      </header>
+      <header id="app-topbar"></header>
 
-      <div class="app-content">
+      <main class="app-content">
 
         <div class="an-header">
           <div>
@@ -214,14 +199,14 @@
 
         </div>
 
-      </div>
+      </main>
 
-    </main>
+    </div>
 
   </div>
 
   <script src="Scripts/config.js"></script>
-  <script src="Scripts/sidebar.js"></script>
+  <script src="Scripts/Layouts/companyLayout.js"></script>
   <script src="Scripts/jobInsights.js"></script>
 </body>
 </html>

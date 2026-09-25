@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Company Profile - ProConnect</title>
+  <link rel="stylesheet" href="Styles/dashboard.css" />
+  <link rel="stylesheet" href="Styles/edit-company-profile.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.44.0/tabler-icons.min.css" />
+</head>
+<body data-page="company-profile">
+
+  <div class="app-shell">
+
+    <div id="sidebar-root"></div>
+
+    <main class="app-main">
+
+      <header class="app-topbar">
+        <div class="app-search">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input type="text" placeholder="Search candidates, jobs, skills..." />
+        </div>
+
+        <div class="app-topbar__icons">
+          <div class="topbar-user" id="topbar-user-toggle">
+            <img id="topbar-avatar" hidden alt="" />
+            <span id="topbar-name">—</span>
+            <i class="ti ti-chevron-down" aria-hidden="true"></i>
+          </div>
+
+          <div class="dropdown-menu" id="topbar-dropdown">
+            <a href="recruiter-profile.html" class="dropdown-menu__item"><i class="ti ti-user" aria-hidden="true"></i> View Profile</a>
+            <a href="#" class="dropdown-menu__item"><i class="ti ti-settings" aria-hidden="true"></i> Settings</a>
+            <button type="button" class="dropdown-menu__item dropdown-menu__item--danger" id="topbar-logout"><i class="ti ti-logout" aria-hidden="true"></i> Log out</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="app-content">
+
+        <a href="company-profile.html" class="breadcrumb-back">
+          <i class="ti ti-arrow-left" aria-hidden="true"></i> Back to Profile
+        </a>
+
+        <div class="page-heading">
+          <h1>Edit Profile</h1>
+          <p>Update your company profile information and how you present your organization to candidates and the community.</p>
+        </div>
+
+        <div class="loading-state" id="loading-state">Loading company profile...</div>
+        <div class="form-alert" id="form-alert" role="alert" hidden></div>
+
+        <div class="edit-layout" id="edit-layout" hidden>
+
+          <div class="edit-main">
+
+            <div class="card">
+              <h3 class="edit-card__heading">Basic Information</h3>
+
+              <div class="edit-field-row">
+                <div class="edit-field">
+                  <label for="edit-company-name">Company Name <span class="required">*</span></label>
+                  <input type="text" id="edit-company-name" placeholder="Your company name" />
+                </div>
+                <div class="edit-field">
+                  <label for="edit-industry">Industry <span class="required">*</span></label>
+                  <div class="input-with-icon">
+                    <select id="edit-industry">
+                      <option value="">Select industry</option>
+                      <option value="Technology">Technology</option>
+                      <option value="Healthcare">Healthcare</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Education">Education</option>
+                      <option value="Retail">Retail</option>
+                      <option value="Manufacturing">Manufacturing</option>
+                      <option value="Marketing">Marketing &amp; Advertising</option>
+                      <option value="Real Estate">Real Estate</option>
+                      <option value="Hospitality">Hospitality</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    <i class="ti ti-id-badge-2 field-icon" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="edit-field-row">
+                <div class="edit-field">
+                  <label for="edit-company-size">Company Size <span class="required">*</span></label>
+                  <div class="input-with-icon">
+                    <select id="edit-company-size">
+                      <option value="">Select size</option>
+                      <option value="1-10 employees">1 - 10 employees</option>
+                      <option value="11-50 employees">11 - 50 employees</option>
+                      <option value="51-200 employees">51 - 200 employees</option>
+                      <option value="201-500 employees">201 - 500 employees</option>
+                      <option value="501-1,000 employees">501 - 1,000 employees</option>
+                      <option value="1,000-5,000 employees">1,000 - 5,000 employees</option>
+                      <option value="5,000+ employees">5,000+ employees</option>
+                    </select>
+                    <i class="ti ti-users field-icon" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <div class="edit-field">
+                  <label for="edit-website">Website <span class="required">*</span></label>
+                  <div class="input-with-icon">
+                    <input type="text" id="edit-website" placeholder="www.yourcompany.com" />
+                    <i class="ti ti-link field-icon" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="edit-field-row">
+                <div class="edit-field">
+                  <label for="edit-location">Location <span class="required">*</span></label>
+                  <div class="input-with-icon">
+                    <input type="text" id="edit-location" placeholder="City, State, Country" />
+                    <i class="ti ti-map-pin field-icon" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <div class="edit-field">
+                  <label for="edit-founded">Founded</label>
+                  <div class="input-with-icon">
+                    <input type="number" id="edit-founded" placeholder="2015" min="1800" step="1" />
+                    <i class="ti ti-calendar field-icon" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="edit-field-row">
+                <div class="edit-field">
+                  <label for="edit-company-type">Company Type <span class="required">*</span></label>
+                  <select id="edit-company-type">
+                    <option value="">Select type</option>
+                    <option value="Public Company">Public Company</option>
+                    <option value="Privately Held">Privately Held</option>
+                    <option value="Startup">Startup</option>
+                    <option value="Nonprofit">Nonprofit</option>
+                    <option value="Government Agency">Government Agency</option>
+                    <option value="Educational Institution">Educational Institution</option>
+                    <option value="Partnership">Partnership</option>
+                    <option value="Self-Employed">Self-Employed</option>
+                  </select>
+                </div>
+                <div class="edit-field"></div>
+              </div>
+
+              <div class="edit-field-row">
+                <div class="edit-field">
+                  <label for="edit-email">Company Email <span class="required">*</span></label>
+                  <div class="input-with-icon">
+                    <input type="email" id="edit-email" placeholder="contact@yourcompany.com" />
+                    <i class="ti ti-mail field-icon" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <div class="edit-field">
+                  <label for="edit-phone">Phone Number <span class="required">*</span></label>
+                  <div class="input-with-icon">
+                    <input type="tel" id="edit-phone" placeholder="+1 (555) 000-0000" />
+                    <i class="ti ti-phone field-icon" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="edit-field-row">
+                <div class="edit-field">
+                  <label>Company Logo</label>
+                  <div class="upload-row">
+                    <div class="upload-avatar upload-avatar--logo" id="logo-preview"></div>
+                    <div>
+                      <button type="button" class="btn-outline btn-compact" id="logo-upload-btn">Change Logo</button>
+                      <p class="edit-field__hint">JPG, PNG or GIF (Max 5MB)</p>
+                    </div>
+                    <input type="file" id="logo-upload-input" accept="image/png, image/jpeg, image/gif" hidden />
+                  </div>
+                </div>
+
+                <div class="edit-field">
+                  <label>Cover Image</label>
+                  <div class="upload-row upload-row--cover">
+                    <div class="upload-cover" id="cover-preview"></div>
+                    <div>
+                      <button type="button" class="btn-outline btn-compact" id="cover-upload-btn">Change Image</button>
+                      <p class="edit-field__hint">JPG, PNG or GIF (Max 10MB)</p>
+                    </div>
+                    <input type="file" id="cover-upload-input" accept="image/png, image/jpeg, image/gif" hidden />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 class="edit-card__heading">About <span class="required">*</span></h3>
+              <div class="edit-field">
+                <textarea id="about-editor" maxlength="2000" rows="6" placeholder="Tell candidates about your company..."></textarea>
+                <span class="edit-char-count"><span id="about-char-count">0</span>/2000</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 class="edit-card__heading">Social Links</h3>
+
+              <div class="edit-field-row edit-field-row--three">
+                <div class="edit-field">
+                  <label for="edit-linkedin">LinkedIn</label>
+                  <div class="input-with-icon input-with-icon--brand">
+                    <input type="text" id="edit-linkedin" placeholder="https://www.linkedin.com/company/..." />
+                    <i class="ti ti-brand-linkedin field-icon field-icon--linkedin" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <div class="edit-field">
+                  <label for="edit-twitter">Twitter / X</label>
+                  <div class="input-with-icon input-with-icon--brand">
+                    <input type="text" id="edit-twitter" placeholder="https://twitter.com/..." />
+                    <i class="ti ti-brand-x field-icon field-icon--twitter" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <div class="edit-field">
+                  <label for="edit-facebook">Facebook</label>
+                  <div class="input-with-icon input-with-icon--brand">
+                    <input type="text" id="edit-facebook" placeholder="https://www.facebook.com/..." />
+                    <i class="ti ti-brand-facebook field-icon field-icon--facebook" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="edit-actions">
+              <button type="button" class="btn-text" id="edit-cancel-btn">Cancel</button>
+              <button type="button" class="btn-primary" id="edit-save-btn">
+                <i class="ti ti-device-floppy" aria-hidden="true"></i> Save Changes
+              </button>
+            </div>
+
+          </div>
+
+          <aside class="edit-sidebar">
+
+            <div class="card preview-card">
+              <h3 class="edit-card__heading">Profile Preview</h3>
+
+              <div class="preview-cover" id="preview-cover">
+                <div class="preview-logo" id="preview-logo"></div>
+              </div>
+
+              <div class="preview-body">
+                <div class="preview-name-row">
+                  <h2 class="preview-name" id="preview-name">—</h2>
+                  <i class="ti ti-rosette-discount-check preview-verified" id="preview-verified" aria-hidden="true" hidden></i>
+                </div>
+                <p class="preview-meta" id="preview-meta">—</p>
+
+                <div class="preview-contact" id="preview-contact"></div>
+
+                <p class="preview-bio" id="preview-bio">—</p>
+
+                <a href="company-profile.html" class="btn-primary btn-block">View Profile</a>
+              </div>
+            </div>
+
+            <div class="card tips-card">
+              <h3 class="tips-card__heading"><i class="ti ti-bulb" aria-hidden="true"></i> Profile Tips</h3>
+              <ul class="tips-list">
+                <li><i class="ti ti-check" aria-hidden="true"></i> Keep your company description clear and concise</li>
+                <li><i class="ti ti-check" aria-hidden="true"></i> Highlight your key services and expertise</li>
+                <li><i class="ti ti-check" aria-hidden="true"></i> Add relevant social media links</li>
+                <li><i class="ti ti-check" aria-hidden="true"></i> Use a professional company logo and cover image</li>
+                <li><i class="ti ti-check" aria-hidden="true"></i> Keep your information up to date</li>
+              </ul>
+            </div>
+
+            <div class="card important-card">
+              <h3 class="important-card__heading"><i class="ti ti-info-circle" aria-hidden="true"></i> Important</h3>
+              <p>Changes to your company profile will be visible to candidates, recruiters and other users on ProConnect.</p>
+            </div>
+
+          </aside>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <div class="toast-stack" id="toast-stack"></div>
+
+  <script src="Scripts/sidebar.js"></script>
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/editCompanyProfile.js"></script>
+</body>
+</html>

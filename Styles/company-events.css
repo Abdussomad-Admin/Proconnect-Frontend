@@ -24,9 +24,9 @@
 }
 
 /* [hidden] must always win over any class's explicit display value —
-   without this, .modal-overlay { display: flex } and similar rules
-   silently override the browser's built-in [hidden] behavior, causing
-   modals to render permanently instead of being toggled by JS. */
+   without this, a rule like .modal-overlay { display: flex } silently
+   overrides the browser's built-in [hidden] behavior, causing modals
+   to render permanently instead of being toggled by JS. */
 [hidden] {
   display: none !important;
 }
@@ -217,6 +217,10 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 4px;
+}
+.section-header .field-label {
+  margin: 0;
 }
 
 /* ---- Create Event layout ---- */
@@ -261,12 +265,35 @@ textarea {
   font-size: 12px;
 }
 
+.cover-upload__preview-wrap {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
 .cover-upload__preview {
   width: 100%;
   max-height: 220px;
   object-fit: cover;
-  border-radius: var(--radius-md);
-  cursor: pointer;
+  display: block;
+}
+
+.cover-upload__preview-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 15, 20, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+.cover-upload__preview-wrap:hover .cover-upload__preview-overlay {
+  opacity: 1;
+  background: rgba(15, 15, 20, 0.45);
+}
+.cover-upload__preview-overlay .btn-outline {
+  background: #fff;
 }
 
 .speaker-list {
@@ -295,6 +322,14 @@ textarea {
   align-items: center;
   justify-content: center;
   font-weight: 700;
+  flex-shrink: 0;
+}
+
+.speaker-card__avatar--img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
   flex-shrink: 0;
 }
 

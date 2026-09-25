@@ -10,11 +10,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   const alertBox = document.getElementById("form-alert");
   let dashboardData = null;
   let postAnalyticsData = null;
+  let postImpressionsData = null;
   let viewsData = null;
+  let demographicsData = null;
   let overviewChart = null;
   let networkChart = null;
   let postTrendChart = null;
   let viewsTrendChart = null;
+  let impressionsTrendChart = null;
+  let viewerTypeChart = null;
+  let industryChart = null;
+  let companySizeChart = null;
   const loadedTabs = new Set();
 
   function showAlert(message) {
@@ -84,8 +90,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   function loadTab(tabName) {
     if (tabName === "overview" && dashboardData) { renderOverviewTab(); return; }
     if (tabName === "network" && dashboardData) { renderNetworkTab(); return; }
-    if (tabName === "engagement" && postAnalyticsData) { renderEngagementTab(); return; }
+    if (tabName === "engagement" && postAnalyticsData && postImpressionsData) { renderEngagementTab(); return; }
     if (tabName === "views" && viewsData) { renderViewsTab(); return; }
+    if (tabName === "demographics" && demographicsData) { renderDemographicsTab(); return; }
 
     if ((tabName === "overview" || tabName === "network") && !loadedTabs.has("dashboard")) {
       loadDashboardData(tabName);
@@ -93,6 +100,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       loadPostAnalytics();
     } else if (tabName === "views" && !loadedTabs.has("views")) {
       loadViewsAnalytics();
+    } else if (tabName === "demographics" && !loadedTabs.has("demographics")) {
+      loadDemographics();
     }
   }
 
@@ -231,24 +240,33 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       const params = new URLSearchParams({ preset });
-      const response = await fetch(`${API_ROUTES.getProfessionalPostAnalytics}?${params.toString()}`, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      });
 
-      const result = await response.json().catch(() => ({}));
+      const [postsRes, impressionsRes] = await Promise.all([
+        fetch(`${API_ROUTES.getProfessionalPostAnalytics}?${params.toString()}`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_ROUTES.getPostImpressionsAnalytics}?${params.toString()}`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-      if (response.status === 401) {
+      const postsResult = await postsRes.json().catch(() => ({}));
+      const impressionsResult = await impressionsRes.json().catch(() => ({}));
+
+      if (postsRes.status === 401 || impressionsRes.status === 401) {
         window.location.href = "login.html?reason=session-expired";
         return;
       }
 
-      if (!response.ok || !result.data) {
-        showAlert(result.message || "Couldn't load your post analytics.");
+      if (!postsRes.ok || !postsResult.data || !impressionsRes.ok || !impressionsResult.data) {
+        showAlert((postsResult.message || impressionsResult.message) || "Couldn't load your post analytics.");
         return;
       }
 
-      postAnalyticsData = result.data;
+      postAnalyticsData = postsResult.data;
+      postImpressionsData = impressionsResult.data;
       loadedTabs.add("posts");
       renderEngagementTab();
 

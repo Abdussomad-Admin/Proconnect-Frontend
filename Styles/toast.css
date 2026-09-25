@@ -1,0 +1,88 @@
+/* ==========================================================================
+   Toast notifications. Relies on --pc-* tokens from dashboard.css —
+   load dashboard.css before this file.
+   ========================================================================== */
+
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 10px;
+  max-width: 340px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--pc-surface);
+  border: 1px solid var(--pc-border);
+  border-left: 4px solid var(--pc-purple);
+  border-radius: var(--pc-radius);
+  box-shadow: 0 10px 30px -10px rgba(30, 20, 80, 0.25);
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--pc-text-primary);
+  opacity: 0;
+  transform: translateX(16px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: auto;
+}
+
+.toast--visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast--leaving {
+  opacity: 0;
+  transform: translateX(16px);
+}
+
+.toast--success { border-left-color: var(--pc-success); }
+.toast--error { border-left-color: var(--pc-danger); }
+.toast--info { border-left-color: var(--pc-purple); }
+
+.toast__icon {
+  font-size: 17px;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.toast--success .toast__icon { color: var(--pc-success); }
+.toast--error .toast__icon { color: var(--pc-danger); }
+.toast--info .toast__icon { color: var(--pc-purple); }
+
+.toast__message {
+  flex: 1;
+  line-height: 1.5;
+}
+
+.toast__close {
+  border: none;
+  background: none;
+  color: var(--pc-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.toast__close:hover {
+  color: var(--pc-text-primary);
+}
+
+@media (max-width: 480px) {
+  .toast-container {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-width: none;
+  }
+}

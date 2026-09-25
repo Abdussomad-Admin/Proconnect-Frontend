@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // lookup below.
 
   try {
-    const response = await fetch(`${API_ROUTES.recruiterProfile}/${recruiterProfileId}`, {
+    const response = await fetch(API_ROUTES.recruiterProfile, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });

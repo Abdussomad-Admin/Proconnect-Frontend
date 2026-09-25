@@ -159,6 +159,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const previewAvatar = document.getElementById("preview-avatar");
   const previewName = document.getElementById("preview-name");
+  const previewRoleBadge = document.getElementById("preview-role-badge");
   const previewMeta = document.getElementById("preview-meta");
   const previewContact = document.getElementById("preview-contact");
   const previewBio = document.getElementById("preview-bio");
@@ -191,6 +192,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     editBioCount.textContent = editBio.value.length;
 
     setAvatarNode(editAvatarPreview, p.profilePictureUrl, p.fullName);
+
+    previewRoleBadge.textContent = p.isCompanyAdmin ? "Company Admin" : "Recruiter";
+    previewRoleBadge.hidden = false;
 
     updateLivePreview();
   }
@@ -332,10 +336,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     saveBtn.classList.add("is-saving");
 
     try {
-      // NOTE: API_ROUTES.updateRecruiterProfile isn't defined in the
-      // snippet of config.js we have — add a route here (PUT/PATCH)
-      // that maps to an UpdateRecruiterProfile command on the backend,
-      // mirroring the shape of GetRecruiterProfile's RecruiterProfileResponse.
       const response = await fetch(API_ROUTES.updateRecruiterProfile, {
         method: "PUT",
         headers: {

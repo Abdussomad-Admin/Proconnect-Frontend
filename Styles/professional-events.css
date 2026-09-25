@@ -473,3 +473,30 @@
     display: none;
   }
 }
+
+/* ---- Tabs (shared across Discover, My Events, Event Details) ---- */
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--pc-border);
+  margin-bottom: 4px;
+}
+.tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 4px;
+  margin-right: 20px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--pc-text-secondary);
+  cursor: pointer;
+  font-family: var(--pc-font);
+}
+.tab:hover {
+  color: var(--pc-text-primary);
+}
+.tab.is-active {
+  color: var(--pc-purple);
+  border-bottom-color: var(--pc-purple);
+}

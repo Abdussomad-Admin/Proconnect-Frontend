@@ -90,24 +90,36 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       const params = new URLSearchParams({ preset });
-      const response = await fetch(`${API_ROUTES.getProfessionalAnalyticsDashboard}?${params.toString()}`, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      });
 
-      const result = await response.json().catch(() => ({}));
+      const [dashboardRes, viewsRes] = await Promise.all([
+        fetch(`${API_ROUTES.getProfessionalAnalyticsDashboard}?${params.toString()}`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_ROUTES.getProfessionalViewsAnalytics}?${params.toString()}`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-      if (response.status === 401) {
+      const result = await dashboardRes.json().catch(() => ({}));
+      const viewsResult = await viewsRes.json().catch(() => ({}));
+
+      if (dashboardRes.status === 401 || viewsRes.status === 401) {
         window.location.href = "login.html?reason=session-expired";
         return;
       }
 
-      if (!response.ok || !result.data) {
+      if (!dashboardRes.ok || !result.data) {
         showAlert(result.message || "Couldn't load your analytics.");
         return;
       }
 
       const d = result.data;
+
+      if (viewsRes.ok && viewsResult.data) {
+        renderKpi("kpi-views", "kpi-views-delta", viewsResult.data.totalViews, viewsResult.data.viewsGrowthPercent);
+      }
 
       renderKpi("kpi-connections", "kpi-connections-delta", d.newConnectionsInRange, d.connectionsGrowthPercent);
       renderKpi("kpi-applications", "kpi-applications-delta", d.applicationsInRange, d.applicationsGrowthPercent);

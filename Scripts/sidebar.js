@@ -421,6 +421,46 @@ function setBadgeCounts(counts) {
   });
 }
 
+// Fetches badge counts that should be visible everywhere, not just on the
+// page that "owns" that data (e.g. the pending-connections count should
+// show on the dashboard too, not only once you've navigated into
+// network-overview.html). Runs on every page that includes sidebar.js.
+// Silently no-ops if there's no token yet, or if a given route isn't
+// defined in API_ROUTES (e.g. messages/notifications routes don't exist
+// yet — Module 6 isn't built) — each count is independent, so one
+// missing route never blocks the others.
+async function loadGlobalBadgeCounts() {
+  const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
+  if (!token) return;
+
+  const authHeaders = { Authorization: `Bearer ${token}` };
+
+  async function fetchCount(url) {
+    if (!url) return null;
+    try {
+      const response = await fetch(`${url}?pageNumber=1&pageSize=1&usePaging=true`, { headers: authHeaders });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result.status === false) return null;
+      return result.data?.totalCount ?? 0;
+    } catch {
+      return null;
+    }
+  }
+
+  const [network, messages, notifications] = await Promise.all([
+    fetchCount(typeof API_ROUTES !== "undefined" ? API_ROUTES.getReceivedRequests : null),
+    fetchCount(typeof API_ROUTES !== "undefined" ? API_ROUTES.getUnreadMessagesCount : null),
+    fetchCount(typeof API_ROUTES !== "undefined" ? API_ROUTES.getUnreadNotificationsCount : null),
+  ]);
+
+  const counts = {};
+  if (network !== null) counts.network = network;
+  if (messages !== null) counts.messages = messages;
+  if (notifications !== null) counts.notifications = notifications;
+
+  if (Object.keys(counts).length) setBadgeCounts(counts);
+}
+
 if (isSidebarCollapsed()) {
   document.body.classList.add("sidebar-collapsed");
 }
@@ -429,6 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderSidebar();
   renderTopbarNavIcons();
   renderTopbarUserInfo();
+  loadGlobalBadgeCounts();
 });
 
 window.ProConnectShell = { setBadgeCounts };

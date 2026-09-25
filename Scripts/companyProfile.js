@@ -56,6 +56,19 @@ document.addEventListener("DOMContentLoaded", () => {
       ? `<img src="${company.logoUrl}" alt="${escapeHtml(company.name)} logo" />`
       : company.name.charAt(0).toUpperCase();
 
+    // Cover image banner — falls back to the existing gradient/color
+    // background from company-profile.css when none has been uploaded.
+    const bannerEl = document.querySelector(".cover-card__banner");
+    if (bannerEl) {
+      if (company.coverImageUrl) {
+        bannerEl.style.backgroundImage = `url('${company.coverImageUrl}')`;
+        bannerEl.classList.add("has-image");
+      } else {
+        bannerEl.style.backgroundImage = "";
+        bannerEl.classList.remove("has-image");
+      }
+    }
+
     const hqLocation = company.locations.find((l) => l.isHeadquarters) || company.locations[0];
     document.getElementById("company-headquarters").innerHTML =
       `<i class="ti ti-map-pin" aria-hidden="true"></i> ${hqLocation ? escapeHtml(hqLocation.city) : "Location not set"}`;

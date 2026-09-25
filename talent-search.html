@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Talent Search · ProConnect</title>
+  <link rel="stylesheet" href="Styles/dashboard.css" />
+  <link rel="stylesheet" href="Styles/talent-search.css" />
+  <link rel="stylesheet" href="Styles/toast.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.44.0/tabler-icons.min.css" />
+</head>
+<body data-page="talent-search">
+
+  <div class="app-shell">
+
+    <div id="sidebar-root"></div>
+
+    <main class="app-main">
+
+      <header class="app-topbar">
+        <div class="app-search">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input type="text" placeholder="Search jobs, candidates, people, or companies..." />
+        </div>
+
+        <div class="app-topbar__icons">
+          <div class="topbar-user" id="topbar-user-toggle">
+            <img id="topbar-avatar" hidden alt="" />
+            <span id="topbar-name">—</span>
+            <i class="ti ti-chevron-down" aria-hidden="true"></i>
+          </div>
+
+          <div class="dropdown-menu" id="topbar-dropdown">
+            <a href="recruiter-profile.html" class="dropdown-menu__item"><i class="ti ti-user" aria-hidden="true"></i> View Profile</a>
+            <a href="#" class="dropdown-menu__item"><i class="ti ti-settings" aria-hidden="true"></i> Settings</a>
+            <button type="button" class="dropdown-menu__item dropdown-menu__item--danger" id="topbar-logout"><i class="ti ti-logout" aria-hidden="true"></i> Log out</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="app-loading" id="loading-state">
+        <span class="spinner spinner--dark"></span>
+        <span>Loading talent search...</span>
+      </div>
+
+      <div class="app-content" id="content" hidden>
+
+        <section class="ts-header">
+          <h1>Talent Search</h1>
+          <p>Find and connect with the best talent for your team. Browse candidates, filter by skills, experience and more.</p>
+        </section>
+
+        <section class="ts-searchbar">
+          <div class="app-search">
+            <i class="ti ti-search" aria-hidden="true"></i>
+            <input type="text" id="keyword-input" placeholder="Search by name, skills, job title, or keywords..." />
+          </div>
+          <button type="button" class="btn-primary btn-compact" id="search-btn"><i class="ti ti-search" aria-hidden="true"></i> Search</button>
+          <button type="button" class="btn-outline btn-compact ts-filters-toggle" id="filters-toggle-btn"><i class="ti ti-adjustments" aria-hidden="true"></i> Filters</button>
+        </section>
+
+        <section class="ts-layout">
+
+          <!-- ---------------- Filter panel ---------------- -->
+          <aside class="card filter-panel" id="filter-panel">
+            <div class="filter-panel__header">
+              <h3>Filter Candidates</h3>
+              <button type="button" class="link-btn" id="reset-filters-btn">Reset</button>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-group__label">Skills</label>
+              <input type="text" id="skill-input" placeholder="Add skills (e.g. React, Python, UI/UX...)" />
+              <div class="filter-skill-chips" id="skill-chips"></div>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-group__label">Experience Level</label>
+              <div class="filter-checkbox-list" id="experience-checkboxes">
+                <label class="filter-checkbox"><input type="checkbox" name="experience" value="0-2" /> Entry Level (0–2 years)</label>
+                <label class="filter-checkbox"><input type="checkbox" name="experience" value="3-5" /> Mid Level (3–5 years)</label>
+                <label class="filter-checkbox"><input type="checkbox" name="experience" value="5-99" /> Senior Level (5+ years)</label>
+              </div>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-group__label">Education</label>
+              <div class="filter-checkbox-list" id="education-checkboxes">
+                <label class="filter-checkbox"><input type="checkbox" name="education" value="High School" /> High School</label>
+                <label class="filter-checkbox"><input type="checkbox" name="education" value="Associate" /> Associate Degree</label>
+                <label class="filter-checkbox"><input type="checkbox" name="education" value="Bachelor" /> Bachelor's Degree</label>
+                <label class="filter-checkbox"><input type="checkbox" name="education" value="Master" /> Master's Degree</label>
+                <label class="filter-checkbox"><input type="checkbox" name="education" value="PhD" /> PhD</label>
+              </div>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-group__label">Location</label>
+              <input type="text" id="location-input" placeholder="City, State or Remote" />
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-group__label">Availability</label>
+              <div class="filter-checkbox-list" id="availability-checkboxes">
+                <label class="filter-checkbox"><input type="checkbox" name="availability" value="Available" /> Immediately</label>
+                <label class="filter-checkbox"><input type="checkbox" name="availability" value="OpenToOffers" /> Open to Offers</label>
+                <label class="filter-checkbox"><input type="checkbox" name="availability" value="NotLooking" /> Not Looking</label>
+              </div>
+            </div>
+
+            <button type="button" class="btn-primary" id="apply-filters-btn">Apply Filters</button>
+          </aside>
+
+          <!-- ---------------- Results ---------------- -->
+          <section class="results-panel">
+            <div class="results-header">
+              <span class="results-header__count"><span id="results-count">—</span> candidates found</span>
+              <div class="results-sort">
+                Sort by:
+                <select id="sort-select">
+                  <option value="relevance">Relevance</option>
+                  <option value="years-desc">Years of Experience</option>
+                  <option value="newest">Newest</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="candidate-list" id="candidate-list"></div>
+
+            <div class="results-pagination" id="pagination" hidden>
+              <button type="button" class="icon-btn icon-btn--ghost icon-btn--sm" id="page-prev-btn"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+              <span id="page-info">Page 1</span>
+              <button type="button" class="icon-btn icon-btn--ghost icon-btn--sm" id="page-next-btn"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+            </div>
+          </section>
+
+          <!-- ---------------- Insights panel ---------------- -->
+          <aside class="insights-panel">
+            <div class="card">
+              <h3 style="margin: 0 0 14px; font-size: 15px;">Talent Insights</h3>
+              <div class="insight-stat-list" id="insight-stats"></div>
+
+              <label class="filter-group__label" style="margin-top: 18px; display: block;">Top Skills</label>
+              <div class="top-skills-list" id="top-skills-list"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3>Recommended Candidates</h3>
+                <a href="#" class="view-all-link">View All</a>
+              </div>
+              <div class="recommended-list" id="recommended-list"></div>
+            </div>
+
+            <!-- Saved Searches — stored in localStorage per-browser for now;
+                 no backend endpoint exists yet for these to sync across
+                 devices. See talentSearch.js SAVED_SEARCHES_KEY. -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Saved Searches</h3>
+                <button type="button" class="link-btn" id="save-search-btn">+ Save current</button>
+              </div>
+              <div class="saved-search-list" id="saved-search-list"></div>
+            </div>
+          </aside>
+
+        </section>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script src="Scripts/sidebar.js"></script>
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/toast.js"></script>
+  <script src="Scripts/talentSearch.js"></script>
+</body>
+</html>

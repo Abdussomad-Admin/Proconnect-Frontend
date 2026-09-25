@@ -4,35 +4,40 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create Event · ProConnect</title>
-  <link rel="stylesheet" href="Styles/dashboard.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/dist/tabler-icons.min.css" />
-  <link rel="stylesheet" href="Styles/create-event.css" />
+  <link rel="stylesheet" href="Styles/dashboard.css" />
   <link rel="stylesheet" href="Styles/company-events.css" />
 </head>
 <body data-page="create-event">
   <div class="app-shell">
+
     <div id="sidebar-root"></div>
 
     <main class="app-main">
+
       <header class="app-topbar">
         <div class="app-search">
           <i class="ti ti-search" aria-hidden="true"></i>
           <input type="text" placeholder="Search candidates, jobs, skills..." />
         </div>
+
         <div class="app-topbar__icons">
           <div class="topbar-user" id="topbar-user-toggle">
             <img id="topbar-avatar" hidden alt="" />
             <span id="topbar-name">—</span>
             <i class="ti ti-chevron-down" aria-hidden="true"></i>
           </div>
+
           <div class="dropdown-menu" id="topbar-dropdown">
             <a href="recruiter-profile.html" class="dropdown-menu__item"><i class="ti ti-user" aria-hidden="true"></i> View Profile</a>
+            <a href="#" class="dropdown-menu__item"><i class="ti ti-settings" aria-hidden="true"></i> Settings</a>
             <button type="button" class="dropdown-menu__item dropdown-menu__item--danger" id="topbar-logout"><i class="ti ti-logout" aria-hidden="true"></i> Log out</button>
           </div>
         </div>
       </header>
 
       <div class="app-content">
+
         <a href="managed-events.html" class="back-link">
           <i class="ti ti-arrow-left" aria-hidden="true"></i> Back to Events
         </a>
@@ -53,7 +58,14 @@
                   <span><strong>Click to upload</strong> or drag and drop</span>
                   <span class="cover-upload__hint">PNG, JPG or GIF (Max 5MB)</span>
                 </div>
-                <img id="cover-preview" class="cover-upload__preview" hidden alt="Event cover preview" />
+                <div class="cover-upload__preview-wrap" id="cover-preview-wrap" hidden>
+                  <img id="cover-preview" class="cover-upload__preview" alt="Event cover preview" />
+                  <div class="cover-upload__preview-overlay">
+                    <button type="button" class="btn-outline btn-sm" id="cover-change-btn">
+                      <i class="ti ti-photo-edit" aria-hidden="true"></i> Change Image
+                    </button>
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -214,6 +226,7 @@
             </div>
           </aside>
         </div>
+
       </div>
     </main>
   </div>
@@ -256,8 +269,8 @@
 
   <div id="toast-container" class="toast-container"></div>
 
-  <script src="Scripts/config.js"></script>
   <script src="Scripts/sidebar.js"></script>
+  <script src="Scripts/config.js"></script>
   <script src="Scripts/createEvent.js"></script>
 </body>
 </html>

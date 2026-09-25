@@ -29,12 +29,21 @@ const API_ROUTES = {
   approveRecruiter: `${API_BASE_URL}/Recruiter/recruiters/approve`,
   removeRecruiter: `${API_BASE_URL}/Recruiter/recruiters`,
   updateCompanyProfile: `${API_BASE_URL}/Recruiter/profile`,
+  updateRecruiterProfile: `${API_BASE_URL}/Recruiter/me`,
   uploadCompanyLogo: `${API_BASE_URL}/Recruiter/logo`,
+  uploadCompanyCoverImage: `${API_BASE_URL}/Recruiter/cover-image`,
   verifyCompany: `${API_BASE_URL}/Recruiter`,
   companyProfile: `${API_BASE_URL}/Recruiter`,
   companyTeam: `${API_BASE_URL}/Recruiter/team`,
   companyManagementOverview: `${API_BASE_URL}/Recruiter/management-overview`,
   recruiterProfile: `${API_BASE_URL}/Recruiter/profile`,
+  getRecruiterPublicProfile: `${API_BASE_URL}/Recruiter`,
+  // Add these entries into your existing API_ROUTES object in Scripts/config.js
+
+getDepartments: `${API_BASE_URL}/Recruiter/departments`,
+createDepartment: `${API_BASE_URL}/Recruiter/departments`,
+updateDepartment: `${API_BASE_URL}/Recruiter/departments`,
+deleteDepartment: `${API_BASE_URL}/Recruiter/departments`,
 
 
   // ---- Connections (Module 4 — Networking) ----
@@ -103,7 +112,7 @@ unhideConversation: `${API_BASE_URL}/Messages/unhide`,
   getSavedJobs: `${API_BASE_URL}/Job/saved-jobs`,
   getApplicationsByJob: `${API_BASE_URL}/Job/applications/job`,
   getApplicationsByProfessional: `${API_BASE_URL}/Job/applications/professional`,
-  getJobCategories: `${API_BASE_URL}/Job/job-categories`,
+  getJobCategories: `${API_BASE_URL}/Recruiter/departments`,
 
   getApplicationsByRecruiter: `${API_BASE_URL}/Job/applications/recruiter`,
   scheduleInterview: `${API_BASE_URL}/Job/schedule-interview`,
@@ -180,4 +189,3 @@ markAllNotificationsRead: `${API_BASE_URL}/Notifications/mark-all-read`,
   getMyEvents: `${API_BASE_URL}/Event/my-events`,
   getEventAttendees: `${API_BASE_URL}/Event/attendees`,
 };
-

@@ -46,12 +46,16 @@
   // ---- Cover image ----
   const coverInput = document.getElementById("cover-image-input");
   const coverDropzone = document.getElementById("cover-dropzone");
+  const coverPreviewWrap = document.getElementById("cover-preview-wrap");
   const coverPreview = document.getElementById("cover-preview");
+  const coverChangeBtn = document.getElementById("cover-change-btn");
   const previewImage = document.getElementById("preview-image");
   const previewImagePlaceholder = document.getElementById("preview-image-placeholder");
   let coverFile = null;
 
   coverDropzone.addEventListener("click", () => coverInput.click());
+  coverChangeBtn.addEventListener("click", () => coverInput.click());
+
   coverDropzone.addEventListener("dragover", (e) => {
     e.preventDefault();
     coverDropzone.classList.add("is-dragover");
@@ -81,7 +85,7 @@
     const url = URL.createObjectURL(file);
 
     coverDropzone.hidden = true;
-    coverPreview.hidden = false;
+    coverPreviewWrap.hidden = false;
     coverPreview.src = url;
 
     previewImagePlaceholder.hidden = true;
@@ -194,12 +198,15 @@
       return;
     }
 
+    const photoFile = document.getElementById("speaker-photo-input").files[0] || null;
+
     const speaker = {
       name,
       title: document.getElementById("speaker-title").value.trim() || null,
       company: document.getElementById("speaker-company").value.trim() || null,
       linkedInUrl: document.getElementById("speaker-linkedin").value.trim() || null,
-      photo: document.getElementById("speaker-photo-input").files[0] || null,
+      photo: photoFile,
+      photoUrl: photoFile ? URL.createObjectURL(photoFile) : null,
     };
 
     if (createdEventId) {
@@ -213,8 +220,11 @@
         if (speaker.linkedInUrl) formData.append("LinkedInUrl", speaker.linkedInUrl);
         if (speaker.photo) formData.append("Photo", speaker.photo);
 
-        await apiRequest(API_ROUTES.addEventSpeaker, { method: "POST", body: formData });
+        const result = await apiRequest(API_ROUTES.addEventSpeaker, { method: "POST", body: formData });
         showToast("Speaker added");
+        // Prefer the real uploaded URL from the server response over the
+        // local blob preview, once/if the backend returns one.
+        if (result.data?.photoUrl) speaker.photoUrl = result.data.photoUrl;
       } catch (err) {
         showToast(err.message, "error");
         return;
@@ -233,7 +243,11 @@
     const card = document.createElement("div");
     card.className = "speaker-card";
     card.innerHTML = `
-      <div class="speaker-card__avatar">${speaker.name.charAt(0).toUpperCase()}</div>
+      ${
+        speaker.photoUrl
+          ? `<img src="${speaker.photoUrl}" class="speaker-card__avatar speaker-card__avatar--img" alt="${speaker.name}" />`
+          : `<div class="speaker-card__avatar">${speaker.name.charAt(0).toUpperCase()}</div>`
+      }
       <div class="speaker-card__info">
         <strong>${speaker.name}</strong>
         <span>${[speaker.title, speaker.company].filter(Boolean).join(" · ")}</span>
@@ -387,14 +401,16 @@
 
       if (e.coverImageUrl) {
         coverDropzone.hidden = true;
-        coverPreview.hidden = false;
+        coverPreviewWrap.hidden = false;
         coverPreview.src = e.coverImageUrl;
         previewImagePlaceholder.hidden = true;
         previewImage.hidden = false;
         previewImage.src = e.coverImageUrl;
       }
 
-      e.speakers.forEach((s) => renderSpeaker({ name: s.name, title: s.title, company: s.company }));
+      e.speakers.forEach((s) =>
+        renderSpeaker({ name: s.name, title: s.title, company: s.company, photoUrl: s.photoUrl })
+      );
     } catch (err) {
       showToast(err.message, "error");
     }

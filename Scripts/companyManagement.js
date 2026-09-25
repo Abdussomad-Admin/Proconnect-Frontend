@@ -59,6 +59,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (tabKey === "team" && !document.getElementById("team-table-body").dataset.loaded) {
       loadTeam();
     }
+
+    if (tabKey === "departments" && !departmentsLoaded) {
+      loadDepartments();
+    }
   }
 
   document.querySelectorAll(".management-tab").forEach((tab) => {
@@ -490,4 +494,162 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadingState.hidden = true;
     managementContent.hidden = false;
   })();
+
+  // ---------------- Departments tab ----------------
+
+  let departmentsLoaded = false;
+  let editingDepartmentId = null;
+
+  async function loadDepartments() {
+    departmentsLoaded = true;
+
+    const { ok, result } = await apiFetch(API_ROUTES.getDepartments);
+
+    if (!ok) {
+      showAlert(result.message || "Couldn't load departments.");
+      return;
+    }
+
+    renderDepartmentsList(result.data || []);
+  }
+
+  function renderDepartmentsList(departments) {
+    const list = document.getElementById("departments-list");
+    const emptyHint = document.getElementById("departments-empty-hint");
+
+    if (!departments.length) {
+      list.innerHTML = "";
+      emptyHint.hidden = false;
+      return;
+    }
+
+    emptyHint.hidden = true;
+
+    list.innerHTML = departments
+      .map(
+        (d) => `
+        <div class="department-row" data-department-id="${d.id}">
+          <span class="department-row__icon"><i class="ti ti-sitemap" aria-hidden="true"></i></span>
+          <div class="department-row__body">
+            <div class="department-row__name">${escapeHtml(d.name)}</div>
+            <div class="department-row__meta">${d.memberCount} member${d.memberCount === 1 ? "" : "s"}${d.description ? " · " + escapeHtml(d.description) : ""}</div>
+          </div>
+          <div class="department-row__actions">
+            <button type="button" class="row-action-btn" data-edit-department="${d.id}" data-name="${escapeHtml(d.name)}" data-description="${escapeHtml(d.description || "")}" aria-label="Edit" title="Edit">
+              <i class="ti ti-pencil" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="row-action-btn row-action-btn--remove" data-delete-department="${d.id}" data-name="${escapeHtml(d.name)}" aria-label="Delete" title="Delete">
+              <i class="ti ti-trash" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>`
+      )
+      .join("");
+
+    wireDepartmentRowActions();
+  }
+
+  function wireDepartmentRowActions() {
+    document.querySelectorAll("[data-edit-department]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        openDepartmentModal({
+          id: btn.dataset.editDepartment,
+          name: btn.dataset.name,
+          description: btn.dataset.description,
+        });
+      });
+    });
+
+    document.querySelectorAll("[data-delete-department]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        confirmAction(
+          "Delete Department",
+          `"${btn.dataset.name}" will be removed. Team members currently assigned to it will keep their department label until reassigned.`,
+          () => handleDeleteDepartment(btn.dataset.deleteDepartment)
+        );
+      });
+    });
+  }
+
+  async function handleDeleteDepartment(departmentId) {
+    hideAlert();
+
+    const { ok, result } = await apiFetch(`${API_ROUTES.deleteDepartment}/${departmentId}`, {
+      method: "DELETE",
+    });
+
+    if (!ok) {
+      showAlert(result.message || "Couldn't delete this department.");
+      return;
+    }
+
+    showAlert(result.message || "Department deleted.", true);
+    loadDepartments();
+  }
+
+  // ---------------- Department modal ----------------
+
+  const departmentOverlay = document.getElementById("department-modal-overlay");
+  const departmentModalTitle = document.getElementById("department-modal-title");
+  const departmentNameInput = document.getElementById("department-name");
+  const departmentDescriptionInput = document.getElementById("department-description");
+  const departmentSubmitBtn = document.getElementById("department-modal-submit");
+
+  function openDepartmentModal(existing = null) {
+    editingDepartmentId = existing ? existing.id : null;
+    departmentModalTitle.textContent = existing ? "Edit Department" : "New Department";
+    departmentNameInput.value = existing ? existing.name : "";
+    departmentDescriptionInput.value = existing ? existing.description : "";
+    document.querySelector('[data-error-for="department-name"]').textContent = "";
+    departmentOverlay.hidden = false;
+  }
+
+  function closeDepartmentModal() {
+    departmentOverlay.hidden = true;
+    editingDepartmentId = null;
+  }
+
+  document.getElementById("new-department-btn").addEventListener("click", () => openDepartmentModal());
+  document.getElementById("department-modal-cancel").addEventListener("click", closeDepartmentModal);
+  document.getElementById("department-modal-close").addEventListener("click", closeDepartmentModal);
+
+  departmentSubmitBtn.addEventListener("click", async () => {
+    const name = departmentNameInput.value.trim();
+    const errorEl = document.querySelector('[data-error-for="department-name"]');
+
+    if (!name) {
+      errorEl.textContent = "Department name is required.";
+      return;
+    }
+    errorEl.textContent = "";
+
+    const payload = {
+      name,
+      description: departmentDescriptionInput.value.trim() || null,
+    };
+
+    departmentSubmitBtn.disabled = true;
+    departmentSubmitBtn.innerHTML = `<span class="spinner"></span><span>Saving...</span>`;
+
+    const isEdit = Boolean(editingDepartmentId);
+    const url = isEdit ? `${API_ROUTES.updateDepartment}/${editingDepartmentId}` : API_ROUTES.createDepartment;
+
+    const { ok, result } = await apiFetch(url, {
+      method: isEdit ? "PUT" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    departmentSubmitBtn.disabled = false;
+    departmentSubmitBtn.innerHTML = `<span class="btn-label">Save Department</span>`;
+
+    if (!ok) {
+      errorEl.textContent = result.message || "Couldn't save this department.";
+      return;
+    }
+
+    closeDepartmentModal();
+    showAlert(result.message || "Saved.", true);
+    loadDepartments();
+  });
 });

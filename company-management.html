@@ -26,10 +26,11 @@
             <img id="topbar-avatar" hidden alt="" />
             <span id="topbar-name">—</span>
             <i class="ti ti-chevron-down" aria-hidden="true"></i>
-          </div>
-          <div class="dropdown-menu" id="topbar-dropdown">
-            <a href="recruiter-profile.html" class="dropdown-menu__item"><i class="ti ti-user" aria-hidden="true"></i> View Profile</a>
-            <button type="button" class="dropdown-menu__item dropdown-menu__item--danger" id="topbar-logout"><i class="ti ti-logout" aria-hidden="true"></i> Log out</button>
+
+            <div class="dropdown-menu" id="topbar-dropdown">
+              <a href="recruiter-profile.html" class="dropdown-menu__item"><i class="ti ti-user" aria-hidden="true"></i> View Profile</a>
+              <button type="button" class="dropdown-menu__item dropdown-menu__item--danger" id="topbar-logout"><i class="ti ti-logout" aria-hidden="true"></i> Log out</button>
+            </div>
           </div>
         </div>
       </header>
@@ -184,15 +185,22 @@
             </div>
           </section>
 
-          <!-- Placeholder tabs -->
+          <!-- Departments tab -->
           <section class="tab-panel" data-tab-panel="departments">
-            <div class="content-card placeholder-card">
-              <i class="ti ti-sitemap" aria-hidden="true"></i>
-              <h3>Departments</h3>
-              <p>Department management isn't available yet. This will let you group recruiters by department.</p>
+            <div class="content-card">
+              <div class="content-card__header">
+                <h3>Departments</h3>
+                <button type="button" class="btn-primary btn-inline" id="new-department-btn">
+                  <i class="ti ti-plus" aria-hidden="true"></i> New Department
+                </button>
+              </div>
+
+              <div id="departments-list" class="departments-list"></div>
+              <p class="empty-hint" id="departments-empty-hint" hidden>No departments yet. Create one to start grouping your team.</p>
             </div>
           </section>
 
+          <!-- Placeholder tabs -->
           <section class="tab-panel" data-tab-panel="job-templates">
             <div class="content-card placeholder-card">
               <i class="ti ti-file-text" aria-hidden="true"></i>
@@ -273,6 +281,35 @@
       <div class="modal__footer">
         <button type="button" class="btn-secondary btn-inline" id="confirm-modal-cancel">Cancel</button>
         <button type="button" class="btn-danger btn-inline" id="confirm-modal-submit">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create/Edit Department modal -->
+  <div class="modal-overlay" id="department-modal-overlay" hidden>
+    <div class="modal">
+      <div class="modal__header">
+        <h3 id="department-modal-title">New Department</h3>
+        <button type="button" class="modal__close" id="department-modal-close" aria-label="Close">
+          <i class="ti ti-x" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="field">
+          <label for="department-name">Department Name</label>
+          <input type="text" id="department-name" placeholder="e.g. Engineering" />
+          <span class="field-error" data-error-for="department-name"></span>
+        </div>
+        <div class="field">
+          <label for="department-description">Description (Optional)</label>
+          <input type="text" id="department-description" placeholder="What this department covers" />
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn-secondary btn-inline" id="department-modal-cancel">Cancel</button>
+        <button type="button" class="btn-primary btn-inline" id="department-modal-submit">
+          <span class="btn-label">Save Department</span>
+        </button>
       </div>
     </div>
   </div>

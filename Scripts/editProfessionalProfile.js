@@ -12,26 +12,42 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   let currentProfile = null;
+  let allSkills = []; // [{id, name}] — fetched once, filtered client-side
 
   // ---------------- Load ----------------
 
   try {
-    const response = await fetch(`${API_ROUTES.professionalProfile}/${profileId}`, {
-      method: "GET",
-      headers: { "Authorization": `Bearer ${token}` },
-    });
+    const [profileResponse, skillsResponse] = await Promise.all([
+      fetch(`${API_ROUTES.professionalProfile}/${profileId}`, {
+        method: "GET",
+        headers: { "Authorization": `Bearer ${token}` },
+      }),
+      fetch(API_ROUTES.getSkills, {
+        method: "GET",
+        headers: { "Authorization": `Bearer ${token}` },
+      }),
+    ]);
 
-    if (response.status === 401) {
+    if (profileResponse.status === 401) {
       clearAuthAndRedirect();
       return;
     }
 
-    const result = await response.json().catch(() => ({}));
+    const result = await profileResponse.json().catch(() => ({}));
 
-    if (!response.ok || !result.data) {
-      loadingState.innerHTML = `<span>Couldn't load your profile (${response.status}). Check the console for details.</span>`;
-      console.error("Profile fetch failed:", response.status, result);
+    if (!profileResponse.ok || !result.data) {
+      loadingState.innerHTML = `<span>Couldn't load your profile (${profileResponse.status}). Check the console for details.</span>`;
+      console.error("Profile fetch failed:", profileResponse.status, result);
       return;
+    }
+
+    const skillsResult = await skillsResponse.json().catch(() => ({}));
+    if (skillsResponse.ok && skillsResult.status && skillsResult.data) {
+      allSkills = skillsResult.data; // [{id, name}]
+    } else {
+      console.error("Skill list fetch failed:", skillsResponse.status, skillsResult);
+      // Not fatal — the Skills tab's search just comes back empty until a
+      // page reload succeeds. Profile itself still loads fine.
     }
 
     currentProfile = result.data;
@@ -195,8 +211,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // ---------------- Save: Basic Information ----------------
-  // Uses UpdateUserBasicInfo — confirm this endpoint exists on your
-  // AuthController as /auth/update-basic-info before testing this tab.
 
   async function saveBasicInfo() {
     const body = {
@@ -219,7 +233,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       summary: document.getElementById("hs-summary").value.trim(),
       gitHubUrl: document.getElementById("hs-github").value.trim() || null,
       linkedInUrl: document.getElementById("hs-linkedin").value.trim() || null,
-      websiteUrl: null, // add a Website input to this tab once you want it exposed here too
+      websiteUrl: null,
     };
 
     return postJson(API_ROUTES.updateProfessionalProfile, body);
@@ -257,9 +271,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       else if (activeTab === "headline") result = await saveHeadlineSummary();
       else if (activeTab === "availability") result = await saveAvailability();
       else {
-        // Experience/Education/Skills/Certifications/Resume/Portfolio each
-        // save themselves individually via their own Add/Edit/Delete
-        // actions — there's nothing for this button to do on those tabs.
         btn.disabled = false;
         btn.textContent = originalLabel;
         return;
@@ -463,9 +474,110 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ==================================================================
-  // Skills — remove only, adding is disabled (needs a skill-lookup
-  // endpoint that doesn't exist yet)
+  // Skills — fetch full list once (allSkills, above), filter client-side,
+  // offer "Create" when nothing matches, then add via
+  // API_ROUTES.addProfessionalSkill. Remove unchanged.
   // ==================================================================
+
+  let selectedSkill = null; // { id, name }
+
+  const skillSearchInput = document.getElementById("skill-search-input");
+  const skillSearchResults = document.getElementById("skill-search-results");
+  const addSkillBtn = document.getElementById("add-skill-btn");
+
+  skillSearchInput.addEventListener("input", () => {
+    selectedSkill = null;
+    addSkillBtn.disabled = true;
+
+    const query = skillSearchInput.value.trim();
+    if (query.length < 1) {
+      skillSearchResults.hidden = true;
+      return;
+    }
+
+    filterAndRenderSkills(query);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!skillSearchResults.contains(e.target) && e.target !== skillSearchInput) {
+      skillSearchResults.hidden = true;
+    }
+  });
+
+  function filterAndRenderSkills(query) {
+    const lower = query.toLowerCase();
+    const matches = allSkills.filter((s) => s.name.toLowerCase().includes(lower)).slice(0, 8);
+    renderSkillSearchResults(matches, query);
+  }
+
+  function renderSkillSearchResults(matches, query) {
+    const items = matches.map((s) => `
+      <div class="skill-search-result-item" data-skill-id="${s.id}" data-skill-name="${escapeAttr(s.name)}">${escapeHtml(s.name)}</div>
+    `).join("");
+
+    const exactMatch = matches.some((s) => s.name.toLowerCase() === query.toLowerCase());
+
+    const createOption = exactMatch ? "" : `
+      <div class="skill-search-result-item skill-search-result-item--create" data-create-skill="${escapeAttr(query)}">
+        <i class="ti ti-plus" aria-hidden="true"></i> Create "${escapeHtml(query)}"
+      </div>
+    `;
+
+    skillSearchResults.innerHTML = (items || `<div class="skill-search-empty">No matches.</div>`) + createOption;
+    skillSearchResults.hidden = false;
+
+    skillSearchResults.querySelectorAll("[data-skill-id]").forEach((el) => {
+      el.addEventListener("click", () => {
+        selectedSkill = { id: el.dataset.skillId, name: el.dataset.skillName };
+        skillSearchInput.value = el.dataset.skillName;
+        skillSearchResults.hidden = true;
+        addSkillBtn.disabled = false;
+      });
+    });
+
+    const createEl = skillSearchResults.querySelector("[data-create-skill]");
+    if (createEl) {
+      createEl.addEventListener("click", async () => {
+        const name = createEl.dataset.createSkill;
+        const result = await postJson(API_ROUTES.createSkill, { name, createdBy: userId });
+        if (!result.ok) {
+          alert(result.message || "Couldn't create skill.");
+          return;
+        }
+        // Newly created skill is now real — add it to the cached list so
+        // it shows up immediately in future searches without a refetch.
+        allSkills.push({ id: result.data.id, name: result.data.name });
+
+        selectedSkill = { id: result.data.id, name: result.data.name };
+        skillSearchInput.value = result.data.name;
+        skillSearchResults.hidden = true;
+        addSkillBtn.disabled = false;
+      });
+    }
+  }
+
+  addSkillBtn.addEventListener("click", async () => {
+    if (!selectedSkill) return;
+
+    const body = {
+      professionalProfileId: profileId,
+      skillId: selectedSkill.id,
+      level: document.getElementById("skill-level-select").value,
+      yearsOfExperience: Number(document.getElementById("skill-years-input").value) || 0,
+    };
+
+    const result = await postJson(API_ROUTES.addProfessionalSkill, body);
+
+    if (!result.ok) {
+      alert(result.message || "Couldn't add skill.");
+      return;
+    }
+
+    selectedSkill = null;
+    skillSearchInput.value = "";
+    addSkillBtn.disabled = true;
+    await reloadProfile();
+  });
 
   function renderSkillsList(list) {
     const el = document.getElementById("skills-manage-list");
@@ -726,5 +838,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   function escapeHtml(str) {
     if (str == null) return "";
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function escapeAttr(str) {
+    return escapeHtml(str).replace(/"/g, "&quot;");
   }
 });
