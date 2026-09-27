@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const alertBox = document.getElementById("form-alert");
   const urlJobId = new URLSearchParams(window.location.search).get("jobId") || "";
 
   let currentStatus = "";
@@ -28,11 +27,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
+  // Thin wrapper kept so every existing showAlert(message, isSuccess) call
+  // site below didn't need touching — now routes to the global toast
+  // (Scripts/toast.js) instead of the old #form-alert div.
   function showAlert(message, isSuccess = false) {
-    alertBox.textContent = message;
-    alertBox.classList.toggle("form-alert--success", isSuccess);
-    alertBox.hidden = false;
-    setTimeout(() => { alertBox.hidden = true; }, 4000);
+    showToast(message, isSuccess ? "success" : "error");
   }
 
   function formatDateTime(dateStr) {

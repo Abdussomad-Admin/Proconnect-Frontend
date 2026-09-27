@@ -432,14 +432,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // ---------------- Candidate card actions ----------------
 
-  // Real endpoint: POST /api/saved-candidates, body { professionalProfileId }.
-  // Matches SavedCandidatesController.Save / SaveCandidateRequest.
+  // Real endpoint: POST /api/Recruiter/save, body { professionalProfileId }.
+  // Matches RecruiterController.Save / SaveCandidateRequest.
   async function saveCandidate(professionalProfileId, btn) {
     const original = btn.innerHTML;
     btn.disabled = true;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/saved-candidates`, {
+      const response = await fetch(`${API_BASE_URL}/Recruiter/save`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

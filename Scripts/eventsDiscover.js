@@ -1,279 +1,315 @@
-(function () {
+document.addEventListener("DOMContentLoaded", async () => {
+  const loadingState = document.getElementById("loading-state");
+  const editLayout = document.getElementById("edit-layout");
+
   const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
+  const companyId = localStorage.getItem("pc_company_id");
 
-  const state = {
-    searchTerm: "",
-    eventTypes: [],
-    locationType: "",
-    dateRangeDays: "",
-    pageNumber: 1,
-    pageSize: 6,
-  };
+  let currentCompany = null;
 
-  function showToast(message, type = "success") {
-    const container = document.getElementById("toast-stack");
-    const toast = document.createElement("div");
-    toast.className = `toast toast--${type}`;
-    toast.textContent = message;
-    container.appendChild(toast);
-    setTimeout(() => toast.classList.add("is-visible"), 10);
-    setTimeout(() => {
-      toast.classList.remove("is-visible");
-      setTimeout(() => toast.remove(), 300);
-    }, 3500);
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str ?? "";
+    return div.innerHTML;
   }
 
-  async function apiRequest(url, options = {}) {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-        ...(options.headers || {}),
-      },
-    });
+  function initials(name) {
+    return (name || "?").trim().charAt(0).toUpperCase();
+  }
 
-    const data = await response.json();
+  function stripProtocol(url) {
+    if (!url) return "";
+    return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  }
 
-    if (!response.ok || !data.status) {
-      throw new Error(data.message || "Something went wrong");
+  function setBoxImage(node, url, seed) {
+    node.innerHTML = url
+      ? `<img src="${url}" alt="" />`
+      : `<span>${escapeHtml(initials(seed))}</span>`;
+  }
+
+  if (!token || !companyId) {
+    loadingState.hidden = true;
+    showToast("No connected company found. Create or join a company first.", "error");
+    return;
+  }
+
+  // ---------------- Element refs ----------------
+
+  const nameInput = document.getElementById("edit-company-name");
+  const industrySelect = document.getElementById("edit-industry");
+  const sizeSelect = document.getElementById("edit-company-size");
+  const websiteInput = document.getElementById("edit-website");
+  const locationInput = document.getElementById("edit-location");
+  const foundedInput = document.getElementById("edit-founded");
+  const companyTypeSelect = document.getElementById("edit-company-type");
+  const emailInput = document.getElementById("edit-email");
+  const phoneInput = document.getElementById("edit-phone");
+  const linkedinInput = document.getElementById("edit-linkedin");
+  const twitterInput = document.getElementById("edit-twitter");
+  const facebookInput = document.getElementById("edit-facebook");
+
+  const logoPreview = document.getElementById("logo-preview");
+  const logoUploadBtn = document.getElementById("logo-upload-btn");
+  const logoUploadInput = document.getElementById("logo-upload-input");
+
+  const coverPreview = document.getElementById("cover-preview");
+  const coverUploadBtn = document.getElementById("cover-upload-btn");
+  const coverUploadInput = document.getElementById("cover-upload-input");
+
+  const aboutEditor = document.getElementById("about-editor"); // plain <textarea> — Description is a plain string field, not HTML
+  const aboutCharCount = document.getElementById("about-char-count");
+
+  const previewCover = document.getElementById("preview-cover");
+  const previewLogo = document.getElementById("preview-logo");
+  const previewName = document.getElementById("preview-name");
+  const previewVerified = document.getElementById("preview-verified");
+  const previewMeta = document.getElementById("preview-meta");
+  const previewContact = document.getElementById("preview-contact");
+  const previewBio = document.getElementById("preview-bio");
+
+  // ---------------- Populate + live preview ----------------
+
+  function populateForm(c) {
+    nameInput.value = c.name || "";
+    industrySelect.value = c.industry || "";
+    sizeSelect.value = c.companySize || "";
+    websiteInput.value = c.website || "";
+    foundedInput.value = c.foundedYear || "";
+    companyTypeSelect.value = c.companyType || "";
+    emailInput.value = c.email || "";
+    phoneInput.value = c.phoneNumber || "";
+    linkedinInput.value = c.linkedInUrl || "";
+    twitterInput.value = c.twitterUrl || "";
+    facebookInput.value = c.facebookUrl || "";
+
+    // Locations comes back as a list ({ city, address, isHeadquarters }).
+    // The form only exposes a single "Location" field, so we surface the
+    // headquarters entry (or the first one) here and re-wrap it as a
+    // single-item list on save. A real multi-office editor would need
+    // its own UI — this keeps today's single-field design working.
+    const locations = c.locations || [];
+    const hq = locations.find((l) => l.isHeadquarters) || locations[0];
+    locationInput.value = hq ? hq.city : "";
+
+    setBoxImage(logoPreview, c.logoUrl, c.name);
+    coverPreview.innerHTML = c.coverImageUrl
+      ? `<img src="${c.coverImageUrl}" alt="" />`
+      : `<i class="ti ti-photo" aria-hidden="true"></i>`;
+
+    aboutEditor.value = c.description || "";
+    updateCharCount();
+
+    previewVerified.hidden = !c.isVerified;
+
+    updateLivePreview();
+  }
+
+  function updateCharCount() {
+    aboutCharCount.textContent = aboutEditor.value.length;
+  }
+
+  function updateLivePreview() {
+    previewName.textContent = nameInput.value.trim() || "Your Company";
+
+    const metaParts = [industrySelect.value, sizeSelect.value].filter(Boolean);
+    previewMeta.textContent = metaParts.join(" · ") || "—";
+
+    const contactItems = [
+      locationInput.value ? { icon: "ti-map-pin", value: locationInput.value } : null,
+      websiteInput.value ? { icon: "ti-link", value: stripProtocol(websiteInput.value) } : null,
+      foundedInput.value ? { icon: "ti-calendar", value: `Founded ${foundedInput.value}` } : null,
+    ].filter(Boolean);
+
+    previewContact.innerHTML = contactItems
+      .map((c) => `<span><i class="ti ${c.icon}" aria-hidden="true"></i> ${escapeHtml(c.value)}</span>`)
+      .join("");
+
+    const bioText = aboutEditor.value.trim();
+    previewBio.textContent = bioText || "No company description added yet.";
+
+    setBoxImage(previewLogo, currentCompany && currentCompany.logoUrl, nameInput.value);
+
+    if (currentCompany && currentCompany.coverImageUrl) {
+      previewCover.style.backgroundImage = `url('${currentCompany.coverImageUrl}')`;
+      previewCover.style.backgroundSize = "cover";
+      previewCover.style.backgroundPosition = "center";
     }
-
-    return data;
   }
 
-  function formatDateRange(start, end) {
-    const s = new Date(start);
-    const e = new Date(end);
-    const dateStr = s.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-    const startTime = s.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-    const endTime = e.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-    return `${dateStr} · ${startTime} – ${endTime}`;
-  }
+  [nameInput, industrySelect, sizeSelect, websiteInput, locationInput, foundedInput].forEach((el) => {
+    el.addEventListener("input", updateLivePreview);
+    el.addEventListener("change", updateLivePreview);
+  });
 
-  function locationLabel(e) {
-    if (e.locationType === "Online") return "Online Event";
-    if (e.locationType === "Hybrid") return `${e.location || "Hybrid"} + Online`;
-    return e.location || "In-person";
-  }
+  aboutEditor.addEventListener("input", () => {
+    updateCharCount();
+    updateLivePreview();
+  });
 
-  function eventTypeBadgeClass(type) {
-    return (
-      {
-        Networking: "event-badge--networking",
-        Webinar: "event-badge--webinar",
-        Workshop: "event-badge--workshop",
-        Conference: "event-badge--conference",
-        CareerFair: "event-badge--careerfair",
-        Social: "event-badge--social",
-      }[type] || ""
-    );
-  }
+  // ---------------- Logo / cover upload ----------------
+  // Matches RecruiterController: PUT /Recruiter/logo and
+  // PUT /Recruiter/cover-image, both [Consumes("multipart/form-data")]
+  // binding a single IFormFile parameter named "file". The company is
+  // resolved server-side from the JWT, so no id is sent here.
 
-  // ---- Featured events ----
-  async function loadFeatured() {
-    try {
-      const result = await apiRequest(`${API_ROUTES.getFeaturedEvents}?count=3`);
-      renderFeatured(result.data);
-    } catch (err) {
-      showToast(err.message, "error");
-    }
-  }
+  async function uploadCompanyImage(file, routeKey, maxSizeBytes, onSuccess) {
+    if (!file) return;
 
-  function renderFeatured(events) {
-    const container = document.getElementById("featured-list");
-
-    if (!events.length) {
-      document.getElementById("featured-section").hidden = true;
+    if (file.size > maxSizeBytes) {
+      showToast(`That image is too large. Please choose one under ${Math.round(maxSizeBytes / (1024 * 1024))}MB.`, "error");
       return;
     }
 
-    container.innerHTML = events
-      .map(
-        (e) => `
-      <a href="event-details.html?id=${e.id}" class="featured-card">
-        <div class="featured-card__image" style="${e.coverImageUrl ? `background-image: url('${e.coverImageUrl}')` : ""}">
-          <span class="event-badge ${eventTypeBadgeClass(e.eventType)}">${e.eventType}</span>
-          <button type="button" class="save-btn ${e.isSaved ? "is-saved" : ""}" data-save-toggle="${e.id}" data-saved="${e.isSaved}">
-            <i class="ti ${e.isSaved ? "ti-bookmark-filled" : "ti-bookmark"}" aria-hidden="true"></i>
-          </button>
-        </div>
-        <div class="featured-card__body">
-          <h3>${e.title}</h3>
-          <p>${e.description}</p>
-          <div class="featured-card__meta">
-            <span><i class="ti ti-calendar" aria-hidden="true"></i> ${formatDateRange(e.startDateTime, e.endDateTime)}</span>
-            <span><i class="ti ti-map-pin" aria-hidden="true"></i> ${locationLabel(e)}</span>
-            <span><i class="ti ti-building" aria-hidden="true"></i> ${e.companyName}</span>
-          </div>
-          <div class="featured-card__footer">
-            <span class="going-count"><i class="ti ti-users" aria-hidden="true"></i> ${e.goingCount} going</span>
-            <span class="btn-primary btn-compact">Register</span>
-          </div>
-        </div>
-      </a>
-    `
-      )
-      .join("");
+    const formData = new FormData();
+    formData.append("file", file);
 
-    wireSaveButtons(container);
-  }
-
-  // ---- Discover / Upcoming ----
-  async function loadEvents() {
     try {
-      const url = new URL(API_ROUTES.discoverEvents);
-      if (state.searchTerm) url.searchParams.set("searchTerm", state.searchTerm);
-      if (state.eventTypes.length) url.searchParams.set("eventTypes", state.eventTypes.join(","));
-      if (state.locationType) url.searchParams.set("locationType", state.locationType);
+      const response = await fetch(API_ROUTES[routeKey], {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
 
-      if (state.dateRangeDays) {
-        const from = new Date();
-        const to = new Date();
-        to.setDate(to.getDate() + parseInt(state.dateRangeDays, 10));
-        url.searchParams.set("startDateFrom", from.toISOString());
-        url.searchParams.set("startDateTo", to.toISOString());
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || !result.data) {
+        console.error(`${routeKey} failed:`, response.status, result);
+        showToast(result.message || "Couldn't upload the image. Please try again.", "error");
+        return;
       }
 
-      url.searchParams.set("pageNumber", state.pageNumber);
-      url.searchParams.set("pageSize", state.pageSize);
-      url.searchParams.set("usePaging", "true");
-
-      const result = await apiRequest(url.toString());
-      renderUpcoming(result.data.items);
-      renderPagination(result.data.totalCount);
+      onSuccess(result.data);
     } catch (err) {
-      showToast(err.message, "error");
+      console.error(`${routeKey} threw an error:`, err);
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     }
   }
 
-  function renderUpcoming(items) {
-    const list = document.getElementById("upcoming-list");
-    const emptyState = document.getElementById("empty-state");
+  logoUploadBtn.addEventListener("click", () => logoUploadInput.click());
+  logoUploadInput.addEventListener("change", async () => {
+    const file = logoUploadInput.files[0];
+    logoPreview.classList.add("is-uploading");
+    await uploadCompanyImage(file, "uploadCompanyLogo", 5 * 1024 * 1024, (newUrl) => {
+      if (currentCompany) currentCompany.logoUrl = newUrl;
+      setBoxImage(logoPreview, newUrl, nameInput.value);
+      updateLivePreview();
+    });
+    logoPreview.classList.remove("is-uploading");
+    logoUploadInput.value = "";
+  });
 
-    if (!items.length) {
-      list.innerHTML = "";
-      emptyState.hidden = false;
+  coverUploadBtn.addEventListener("click", () => coverUploadInput.click());
+  coverUploadInput.addEventListener("change", async () => {
+    const file = coverUploadInput.files[0];
+    coverPreview.classList.add("is-uploading");
+    await uploadCompanyImage(file, "uploadCompanyCoverImage", 10 * 1024 * 1024, (newUrl) => {
+      if (currentCompany) currentCompany.coverImageUrl = newUrl;
+      coverPreview.innerHTML = `<img src="${newUrl}" alt="" />`;
+      updateLivePreview();
+    });
+    coverPreview.classList.remove("is-uploading");
+    coverUploadInput.value = "";
+  });
+
+  // ---------------- Cancel / Save ----------------
+
+  document.getElementById("edit-cancel-btn").addEventListener("click", () => {
+    window.location.href = "company-profile.html";
+  });
+
+  const saveBtn = document.getElementById("edit-save-btn");
+
+  saveBtn.addEventListener("click", async () => {
+    const name = nameInput.value.trim();
+    const industry = industrySelect.value;
+    const description = aboutEditor.value.trim();
+    const website = websiteInput.value.trim();
+    const email = emailInput.value.trim();
+    const phoneNumber = phoneInput.value.trim();
+    const companySize = sizeSelect.value;
+    const companyType = companyTypeSelect.value;
+    const foundedYear = foundedInput.value ? parseInt(foundedInput.value, 10) : null;
+    const locationCity = locationInput.value.trim();
+
+    if (!name || !industry || !description || !email || !phoneNumber || !companySize || !companyType) {
+      showToast("Please fill in all required fields before saving.", "error");
       return;
     }
 
-    emptyState.hidden = true;
+    // Matches UpdateCompanyProfileCommand exactly — RequestingUserId is
+    // set server-side from the JWT, so it's omitted here.
+    const payload = {
+      name,
+      industry,
+      description,
+      website: website || null,
+      email,
+      phoneNumber,
+      companySize,
+      companyType,
+      foundedYear,
+      linkedInUrl: linkedinInput.value.trim() || null,
+      twitterUrl: twitterInput.value.trim() || null,
+      facebookUrl: facebookInput.value.trim() || null,
+      instagramUrl: null,
+      locations: locationCity
+        ? [{ city: locationCity, address: null, isHeadquarters: true }]
+        : [],
+    };
 
-    list.innerHTML = items
-      .map(
-        (e) => `
-      <div class="upcoming-card">
-        <a href="event-details.html?id=${e.id}" class="upcoming-card__image" style="${
-          e.coverImageUrl ? `background-image: url('${e.coverImageUrl}')` : ""
-        }">
-          <span class="event-badge ${eventTypeBadgeClass(e.eventType)}">${e.eventType}</span>
-        </a>
-        <div class="upcoming-card__body">
-          <a href="event-details.html?id=${e.id}"><h3>${e.title}</h3></a>
-          <p>${e.description}</p>
-        </div>
-        <div class="upcoming-card__meta">
-          <span><i class="ti ti-calendar" aria-hidden="true"></i> ${formatDateRange(e.startDateTime, e.endDateTime)}</span>
-          <span><i class="ti ti-map-pin" aria-hidden="true"></i> ${locationLabel(e)}</span>
-        </div>
-        <div class="upcoming-card__actions">
-          <a href="event-details.html?id=${e.id}" class="btn-outline btn-compact">Register</a>
-          <button type="button" class="card-icon-btn ${e.isSaved ? "is-saved" : ""}" data-save-toggle="${e.id}" data-saved="${e.isSaved}">
-            <i class="ti ${e.isSaved ? "ti-bookmark-filled" : "ti-bookmark"}" aria-hidden="true"></i>
-          </button>
-        </div>
-      </div>
-    `
-      )
-      .join("");
+    saveBtn.disabled = true;
+    saveBtn.classList.add("is-saving");
 
-    wireSaveButtons(list);
-  }
-
-  function wireSaveButtons(container) {
-    container.querySelectorAll("[data-save-toggle]").forEach((btn) => {
-      btn.addEventListener("click", async (evt) => {
-        evt.preventDefault();
-        evt.stopPropagation();
-
-        const eventId = btn.dataset.saveToggle;
-        const isSaved = btn.dataset.saved === "true";
-
-        try {
-          await apiRequest(isSaved ? API_ROUTES.unsaveEvent : API_ROUTES.saveEvent, {
-            method: "POST",
-            body: JSON.stringify({ EventId: eventId }),
-          });
-
-          btn.dataset.saved = (!isSaved).toString();
-          btn.classList.toggle("is-saved", !isSaved);
-          const icon = btn.querySelector("i");
-          icon.className = `ti ${!isSaved ? "ti-bookmark-filled" : "ti-bookmark"}`;
-
-          showToast(isSaved ? "Removed from saved events" : "Event saved");
-        } catch (err) {
-          showToast(err.message, "error");
-        }
+    try {
+      const response = await fetch(API_ROUTES.updateCompanyProfile, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
       });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || !result.status) {
+        showToast(result.message || "Couldn't save your changes. Please try again.", "error");
+        return;
+      }
+
+      window.location.href = "company-profile.html";
+    } catch (err) {
+      console.error("Save company profile threw an error:", err);
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.classList.remove("is-saving");
+    }
+  });
+
+  // ---------------- Load ----------------
+
+  try {
+    const response = await fetch(`${API_ROUTES.companyProfile}/${companyId}`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
-  }
 
-  function renderPagination(totalCount) {
-    const pageCount = Math.ceil(totalCount / state.pageSize);
-    const container = document.getElementById("pagination");
+    const result = await response.json().catch(() => ({}));
 
-    if (pageCount <= 1) {
-      container.innerHTML = "";
+    if (!response.ok || !result.data) {
+      loadingState.hidden = true;
+      showToast(result.message || "Couldn't load your company profile.", "error");
       return;
     }
 
-    let html = "";
-    for (let i = 1; i <= pageCount; i++) {
-      html += `<button type="button" class="pagination__btn ${i === state.pageNumber ? "is-active" : ""}" data-page="${i}">${i}</button>`;
-    }
-    container.innerHTML = html;
+    currentCompany = result.data;
+    populateForm(currentCompany);
 
-    container.querySelectorAll(".pagination__btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        state.pageNumber = parseInt(btn.dataset.page, 10);
-        loadEvents();
-        window.scrollTo({ top: document.querySelector(".discover-main").offsetTop - 100, behavior: "smooth" });
-      });
-    });
+    loadingState.hidden = true;
+    editLayout.hidden = false;
+  } catch (err) {
+    loadingState.hidden = true;
+    showToast("Couldn't reach the server. Check your connection and try again.", "error");
   }
-
-  // ---- Filters ----
-  document.getElementById("apply-filters-btn").addEventListener("click", () => {
-    state.eventTypes = Array.from(document.querySelectorAll('input[name="event-type"]:checked')).map((cb) => cb.value);
-    state.locationType = document.querySelector('input[name="location-type"]:checked').value;
-    state.dateRangeDays = document.querySelector('input[name="date-range"]:checked').value;
-    state.pageNumber = 1;
-    loadEvents();
-  });
-
-  document.getElementById("clear-filters-btn").addEventListener("click", () => {
-    document.querySelectorAll('input[name="event-type"]').forEach((cb) => (cb.checked = false));
-    document.querySelector('input[name="location-type"][value=""]').checked = true;
-    document.querySelector('input[name="date-range"][value=""]').checked = true;
-    state.eventTypes = [];
-    state.locationType = "";
-    state.dateRangeDays = "";
-    state.pageNumber = 1;
-    loadEvents();
-  });
-
-  document.getElementById("search-btn").addEventListener("click", () => {
-    state.searchTerm = document.getElementById("search-input").value.trim();
-    state.pageNumber = 1;
-    loadEvents();
-  });
-
-  document.getElementById("search-input").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      document.getElementById("search-btn").click();
-    }
-  });
-
-  loadFeatured();
-  loadEvents();
-})();
+});

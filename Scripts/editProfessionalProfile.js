@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      alert("That image is too large. Please choose one under 2MB.");
+      showToast("That image is too large. Please choose one under 2MB.", "error");
       fileInput.value = "";
       return;
     }
@@ -196,7 +196,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || !result.data) {
-        alert(result.message || "Couldn't upload your photo.");
+        showToast(result.message || "Couldn't upload your photo.", "error");
         return;
       }
 
@@ -204,7 +204,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("topbar-avatar").src = result.data;
       document.getElementById("preview-photo").src = result.data;
     } catch (err) {
-      alert("Couldn't reach the server. Check your connection and try again.");
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     } finally {
       fileInput.value = "";
     }
@@ -277,13 +277,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       if (!result.ok) {
-        alert(result.message || "Couldn't save your changes.");
+        showToast(result.message || "Couldn't save your changes.", "error");
       } else {
         btn.textContent = "Saved!";
         setTimeout(() => { btn.textContent = originalLabel; }, 1200);
       }
     } catch (err) {
-      alert("Couldn't reach the server. Check your connection and try again.");
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     } finally {
       btn.disabled = false;
       if (btn.textContent === "Saving...") btn.textContent = originalLabel;
@@ -376,7 +376,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const payload = id ? { id, ...body } : body;
 
     const result = await postJson(url, payload);
-    if (!result.ok) { alert(result.message || "Couldn't save experience."); return; }
+    if (!result.ok) { showToast(result.message || "Couldn't save experience.", "error"); return; }
 
     experienceForm.hidden = true;
     await reloadProfile();
@@ -385,7 +385,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function deleteExperience(id) {
     if (!confirm("Delete this experience entry?")) return;
     const result = await postJson(`${API_BASE_URL}/Professional/delete-experience`, { id });
-    if (!result.ok) { alert(result.message || "Couldn't delete."); return; }
+    if (!result.ok) { showToast(result.message || "Couldn't delete.", "error"); return; }
     await reloadProfile();
   }
 
@@ -460,7 +460,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const payload = id ? { id, ...body } : body;
 
     const result = await postJson(url, payload);
-    if (!result.ok) { alert(result.message || "Couldn't save education."); return; }
+    if (!result.ok) { showToast(result.message || "Couldn't save education.", "error"); return; }
 
     educationForm.hidden = true;
     await reloadProfile();
@@ -469,7 +469,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function deleteEducation(id) {
     if (!confirm("Delete this education entry?")) return;
     const result = await postJson(`${API_BASE_URL}/Professional/delete-education`, { id, deletePermanently: false });
-    if (!result.ok) { alert(result.message || "Couldn't delete."); return; }
+    if (!result.ok) { showToast(result.message || "Couldn't delete.", "error"); return; }
     await reloadProfile();
   }
 
@@ -541,7 +541,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const name = createEl.dataset.createSkill;
         const result = await postJson(API_ROUTES.createSkill, { name, createdBy: userId });
         if (!result.ok) {
-          alert(result.message || "Couldn't create skill.");
+          showToast(result.message || "Couldn't create skill.", "error");
           return;
         }
         // Newly created skill is now real — add it to the cached list so
@@ -569,7 +569,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const result = await postJson(API_ROUTES.addProfessionalSkill, body);
 
     if (!result.ok) {
-      alert(result.message || "Couldn't add skill.");
+      showToast(result.message || "Couldn't add skill.", "error");
       return;
     }
 
@@ -600,7 +600,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function removeSkill(id) {
     if (!confirm("Remove this skill?")) return;
     const result = await postJson(`${API_BASE_URL}/Professional/remove-professional-skill`, { id });
-    if (!result.ok) { alert(result.message || "Couldn't remove skill."); return; }
+    if (!result.ok) { showToast(result.message || "Couldn't remove skill.", "error"); return; }
     await reloadProfile();
   }
 
@@ -673,7 +673,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const payload = id ? { id, ...body } : body;
 
     const result = await postJson(url, payload);
-    if (!result.ok) { alert(result.message || "Couldn't save certificate."); return; }
+    if (!result.ok) { showToast(result.message || "Couldn't save certificate.", "error"); return; }
 
     certificateForm.hidden = true;
     await reloadProfile();
@@ -682,7 +682,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function deleteCertificate(id) {
     if (!confirm("Delete this certification?")) return;
     const result = await postJson(`${API_BASE_URL}/Professional/delete-certificate`, { id, deletePermanently: false });
-    if (!result.ok) { alert(result.message || "Couldn't delete."); return; }
+    if (!result.ok) { showToast(result.message || "Couldn't delete.", "error"); return; }
     await reloadProfile();
   }
 
@@ -729,13 +729,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || !result.data) {
-        alert(result.message || "Couldn't upload your resume.");
+        showToast(result.message || "Couldn't upload your resume.", "error");
         return;
       }
 
       await reloadProfile();
     } catch (err) {
-      alert("Couldn't reach the server. Check your connection and try again.");
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     } finally {
       fileInput.value = "";
     }
@@ -795,7 +795,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || result.status === false) {
-        alert(result.message || "Couldn't add portfolio link.");
+        showToast(result.message || "Couldn't add portfolio link.", "error");
         return;
       }
 
@@ -803,14 +803,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       portfolioForm.hidden = true;
       await reloadProfile();
     } catch (err) {
-      alert("Couldn't reach the server. Check your connection and try again.");
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     }
   });
 
   async function deletePortfolioLink(id) {
     if (!confirm("Delete this portfolio link?")) return;
     const result = await postJson(`${API_BASE_URL}/Professional/delete-portfolio-link`, { id, deletePermanently: false });
-    if (!result.ok) { alert(result.message || "Couldn't delete."); return; }
+    if (!result.ok) { showToast(result.message || "Couldn't delete.", "error"); return; }
     await reloadProfile();
   }
 

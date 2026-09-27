@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("create-company-form");
-  const alertBox = document.getElementById("form-alert");
   const submitBtn = document.getElementById("submit-btn");
 
   const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
@@ -16,16 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------------- Helpers ----------------
 
-  function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
-  }
-
-  function hideAlert() {
-    alertBox.hidden = true;
-    alertBox.textContent = "";
-  }
-
   function setFieldError(fieldId, message) {
     const input = document.getElementById(fieldId);
     const errorEl = document.querySelector(`[data-error-for="${fieldId}"]`);
@@ -39,7 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function goToStep(step) {
     currentStep = step;
-    hideAlert();
 
     document.querySelectorAll(".wizard-panel").forEach((panel) => {
       panel.classList.toggle("is-active", panel.dataset.panel === String(step));
@@ -307,10 +295,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    hideAlert();
 
     if (!validateStep1() || !validateStep2()) {
-      showAlert("Please complete all required fields before submitting.");
+      showToast("Please complete all required fields before submitting.", "error");
       return;
     }
 
@@ -345,7 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log(result, response);
 
       if (!response.ok || !result.status) {
-        showAlert(result.message || "Couldn't create your company. Please check your details and try again.");
+        showToast(result.message || "Couldn't create your company. Please check your details and try again.", "error");
         return;
       }
 
@@ -388,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       window.location.href = "company-management.html";
     } catch (err) {
-      showAlert("Couldn't reach the server. Check your connection and try again.");
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     } finally {
       setLoading(false);
     }

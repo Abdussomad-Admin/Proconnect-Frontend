@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const alertBox = document.getElementById("form-alert");
   let company = null;
   let reviewsPage = 1;
   const reviewsPageSize = 5;
@@ -27,11 +26,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
+  // Thin wrapper kept so every existing showAlert(message, isSuccess) call
+  // site below didn't need touching — now routes to the global toast
+  // (Scripts/toast.js) instead of the old #form-alert div.
   function showAlert(message, isSuccess = false) {
-    alertBox.textContent = message;
-    alertBox.classList.toggle("form-alert--success", isSuccess);
-    alertBox.hidden = false;
-    alertBox.scrollIntoView({ behavior: "smooth", block: "start" });
+    showToast(message, isSuccess ? "success" : "error");
   }
 
   function starString(rating) {

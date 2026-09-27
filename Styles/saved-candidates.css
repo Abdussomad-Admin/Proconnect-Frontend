@@ -1,0 +1,297 @@
+/* ==========================================================================
+   Saved Candidates — page-specific styles.
+   Reuses .candidate-card, .match-ring, .dropdown-wrap/.dropdown-menu,
+   .status-pill/.status-dot, .chip from talent-search.css, and tokens from
+   dashboard.css. Load dashboard.css, then talent-search.css, then this file.
+   ========================================================================== */
+
+/* ---------- Header ---------- */
+
+.sc-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--pc-purple);
+  text-decoration: none;
+  margin-bottom: 10px;
+}
+
+.sc-back-link:hover {
+  text-decoration: underline;
+}
+
+.sc-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.sc-header h1 {
+  font-size: 22px;
+  margin: 0 0 4px;
+}
+
+.sc-header p {
+  font-size: 13px;
+  color: var(--pc-text-secondary);
+  margin: 0;
+}
+
+/* ---------- Tabs ---------- */
+
+.sc-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--pc-border);
+  margin-bottom: 1rem;
+}
+
+.sc-tab {
+  border: none;
+  background: none;
+  padding: 10px 4px;
+  margin-right: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pc-text-secondary);
+  cursor: pointer;
+  font-family: var(--pc-font);
+  border-bottom: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sc-tab:hover {
+  color: var(--pc-text-primary);
+}
+
+.sc-tab.is-active {
+  color: var(--pc-purple);
+  border-bottom-color: var(--pc-purple);
+}
+
+.sc-tab__count {
+  font-size: 11px;
+  color: var(--pc-text-muted);
+}
+
+.sc-tab.is-active .sc-tab__count {
+  color: var(--pc-purple);
+}
+
+/* ---------- Layout: list + right filter panel ---------- */
+
+.sc-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+/* ---------- Toolbar ---------- */
+
+.sc-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.filter-group select {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius);
+  font-size: 12.5px;
+  font-family: var(--pc-font);
+  color: var(--pc-text-primary);
+  background: var(--pc-surface);
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: var(--pc-purple);
+  box-shadow: 0 0 0 3px var(--pc-purple-light);
+}
+
+.sc-select-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--pc-text-secondary);
+  white-space: nowrap;
+}
+
+.sc-select-all input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--pc-purple);
+}
+
+.sc-toolbar .app-search {
+  max-width: none;
+  flex: 1;
+  height: 38px;
+}
+
+.sc-sort {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--pc-text-secondary);
+  white-space: nowrap;
+}
+
+.sc-sort select {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius);
+  height: 34px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-family: var(--pc-font);
+  color: var(--pc-text-primary);
+  background: var(--pc-surface);
+}
+
+/* ---------- List ---------- */
+
+.saved-candidate-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.saved-candidate-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 1.1rem 1.25rem;
+}
+
+.saved-candidate-card__checkbox {
+  margin-top: 4px;
+  width: 15px;
+  height: 15px;
+  accent-color: var(--pc-purple);
+  flex-shrink: 0;
+}
+
+.sc-top-pick-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--pc-purple);
+  padding: 2px 9px;
+  border-radius: 999px;
+}
+
+.saved-candidate-card__saved-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  min-width: 100px;
+}
+
+.saved-candidate-card__saved-at {
+  font-size: 11px;
+  color: var(--pc-text-muted);
+  text-align: right;
+}
+
+/* ---------- Right filter panel ---------- */
+
+.sc-filter-panel {
+  position: sticky;
+  top: calc(var(--pc-topbar-height) + 16px);
+}
+
+.sc-filter-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.sc-filter-panel__header h3 {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* ---------- Numbered pagination ---------- */
+
+.sc-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--pc-text-secondary);
+}
+
+.sc-pagination__pages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sc-page-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--pc-radius);
+  border: 1px solid var(--pc-border);
+  background: var(--pc-surface);
+  color: var(--pc-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sc-page-btn:hover {
+  background: var(--pc-panel-bg);
+}
+
+.sc-page-btn.is-active {
+  background: var(--pc-purple);
+  border-color: var(--pc-purple);
+  color: #fff;
+}
+
+.sc-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1100px) {
+  .sc-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .saved-candidate-card {
+    flex-wrap: wrap;
+  }
+
+  .saved-candidate-card__saved-col {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+  }
+}

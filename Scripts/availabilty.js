@@ -261,9 +261,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ---------------- Save ----------------
 
   document.getElementById("save-availability-btn").addEventListener("click", async () => {
-    const alertBox = document.getElementById("form-alert");
-    alertBox.hidden = true;
-
     const body = {
       userId,
       availabilityStatus: selectedStatus,
@@ -292,18 +289,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || result.status === false) {
-        alertBox.textContent = result.message || "Couldn't save your availability.";
-        alertBox.hidden = false;
+        showToast(result.message || "Couldn't save your availability.", "error");
         return;
       }
 
       btn.textContent = "Saved!";
+      showToast("Availability updated.", "success");
       renderSummary({ ...body, earliestStartDate: body.earliestStartDate });
       setTimeout(() => { btn.textContent = originalLabel; }, 1200);
 
     } catch (err) {
-      alertBox.textContent = "Couldn't reach the server. Check your connection and try again.";
-      alertBox.hidden = false;
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     } finally {
       btn.disabled = false;
       if (btn.textContent === "Saving...") btn.textContent = originalLabel;

@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
   const loadingState = document.getElementById("loading-state");
-  const alertBox = document.getElementById("form-alert");
   const profileLayout = document.getElementById("profile-layout");
 
   const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
@@ -13,11 +12,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
   let companyId = params.get("id");
 
-  function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
-  }
-
   function escapeHtml(str) {
     const div = document.createElement("div");
     div.textContent = str ?? "";
@@ -26,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!companyId && !token) {
     loadingState.hidden = true;
-    showAlert("No company selected.");
+    showToast("No company selected.", "error");
     return;
   }
 
@@ -248,7 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!companyId) {
           loadingState.hidden = true;
-          showAlert("You're not yet linked to a company. Create or join a company first.");
+          showToast("You're not yet linked to a company. Create or join a company first.", "error");
           return;
         }
       }
@@ -258,7 +252,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!response.ok || !result.status) {
         loadingState.hidden = true;
-        showAlert(result.message || "Couldn't load this company profile.");
+        showToast(result.message || "Couldn't load this company profile.", "error");
         return;
       }
 
@@ -269,7 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
       profileLayout.hidden = false;
     } catch (err) {
       loadingState.hidden = true;
-      showAlert("Couldn't reach the server. Check your connection and try again.");
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     }
   })();
 });

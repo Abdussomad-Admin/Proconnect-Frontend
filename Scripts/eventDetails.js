@@ -14,18 +14,11 @@
   let resumePublicId = null;
   const attendeesState = { pageNumber: 1, pageSize: 12 };
 
-  function showToast(message, type = "success") {
-    const container = document.getElementById("toast-stack");
-    const toast = document.createElement("div");
-    toast.className = `toast toast--${type}`;
-    toast.textContent = message;
-    container.appendChild(toast);
-    setTimeout(() => toast.classList.add("is-visible"), 10);
-    setTimeout(() => {
-      toast.classList.remove("is-visible");
-      setTimeout(() => toast.remove(), 300);
-    }, 3500);
-  }
+  // NOTE: showToast is now the global one from Scripts/toast.js (loaded via
+  // a <script> tag on this page) — the local duplicate that used to live
+  // here (using a #toast-stack div) has been removed. Its default type was
+  // "success"; the global default is "info", so calls below that relied on
+  // the old default now pass "success" explicitly.
 
   async function apiRequest(url, options = {}) {
     const response = await fetch(url, {
@@ -407,7 +400,7 @@
         body: JSON.stringify({ EventId: eventId }),
       });
       currentEvent.isSaved = !currentEvent.isSaved;
-      showToast(currentEvent.isSaved ? "Event saved" : "Removed from saved events");
+      showToast(currentEvent.isSaved ? "Event saved" : "Removed from saved events", "success");
       renderBanner();
       renderSidebar();
     } catch (err) {
@@ -421,7 +414,7 @@
       navigator.share({ title: currentEvent.title, url }).catch(() => {});
     } else {
       navigator.clipboard.writeText(url);
-      showToast("Event link copied to clipboard");
+      showToast("Event link copied to clipboard", "success");
     }
   }
 
@@ -433,7 +426,7 @@
         method: "POST",
         body: JSON.stringify({ EventId: eventId }),
       });
-      showToast("Registration cancelled");
+      showToast("Registration cancelled", "success");
       loadEvent();
     } catch (err) {
       showToast(err.message, "error");
@@ -567,7 +560,7 @@
         }),
       });
 
-      showToast("You're registered! Check your email for details.");
+      showToast("You're registered! Check your email for details.", "success");
       closeRegisterModal();
       loadEvent();
     } catch (err) {

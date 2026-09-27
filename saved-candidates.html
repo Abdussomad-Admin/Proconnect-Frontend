@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saved Candidates · ProConnect</title>
+  <link rel="stylesheet" href="Styles/dashboard.css" />
+  <link rel="stylesheet" href="Styles/talent-search.css" />
+  <link rel="stylesheet" href="Styles/saved-candidates.css" />
+  <link rel="stylesheet" href="Styles/toast.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.44.0/tabler-icons.min.css" />
+</head>
+<body data-page="saved-candidates">
+
+  <div class="app-shell">
+
+    <div id="sidebar-root"></div>
+
+    <main class="app-main">
+
+      <header class="app-topbar">
+        <div class="app-search">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input type="text" placeholder="Search jobs, candidates, people, or companies..." />
+        </div>
+
+        <div class="app-topbar__icons">
+          <div class="topbar-user" id="topbar-user-toggle">
+            <img id="topbar-avatar" hidden alt="" />
+            <span id="topbar-name">—</span>
+            <i class="ti ti-chevron-down" aria-hidden="true"></i>
+          </div>
+
+          <div class="dropdown-menu" id="topbar-dropdown">
+            <a href="recruiter-profile.html" class="dropdown-menu__item"><i class="ti ti-user" aria-hidden="true"></i> View Profile</a>
+            <a href="#" class="dropdown-menu__item"><i class="ti ti-settings" aria-hidden="true"></i> Settings</a>
+            <button type="button" class="dropdown-menu__item dropdown-menu__item--danger" id="topbar-logout"><i class="ti ti-logout" aria-hidden="true"></i> Log out</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="app-loading" id="loading-state">
+        <span class="spinner spinner--dark"></span>
+        <span>Loading saved candidates...</span>
+      </div>
+
+      <div class="app-content" id="content" hidden>
+
+        <a href="candidates.html" class="sc-back-link"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back to Candidates</a>
+
+        <section class="sc-header">
+          <div>
+            <h1>Saved Candidates</h1>
+            <p>View and manage candidates you've saved for future opportunities. Keep track of their profiles, status and potential fit.</p>
+          </div>
+          <button type="button" class="btn-outline btn-compact" disabled title="Coming soon">
+            <i class="ti ti-download" aria-hidden="true"></i> Export Saved List
+          </button>
+        </section>
+
+        <nav class="sc-tabs" id="sc-tabs">
+          <button type="button" class="sc-tab is-active" data-tab="all">All Saved <span class="sc-tab__count" id="count-all"></span></button>
+          <button type="button" class="sc-tab" data-tab="recent-added">Recently Added</button>
+          <button type="button" class="sc-tab" data-tab="recent-active">Recently Active</button>
+          <button type="button" class="sc-tab" data-tab="top-talent">Top Talent</button>
+        </nav>
+
+        <section class="sc-layout">
+
+          <div>
+            <div class="sc-toolbar">
+              <label class="sc-select-all">
+                <input type="checkbox" id="select-all-checkbox" /> Select All
+              </label>
+              <div class="app-search">
+                <i class="ti ti-search" aria-hidden="true"></i>
+                <input type="text" id="keyword-input" placeholder="Search saved candidates by name, skills, or keywords..." />
+              </div>
+              <div class="sc-sort">
+                Sort by:
+                <select id="sort-select">
+                  <option value="saved-newest">Date Saved (Newest)</option>
+                  <option value="saved-oldest">Date Saved (Oldest)</option>
+                  <option value="match-desc">Match Score</option>
+                  <option value="years-desc">Years of Experience</option>
+                  <option value="name-asc">Name (A–Z)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="saved-candidate-list" id="candidate-list"></div>
+
+            <div class="sc-pagination" id="pagination" hidden>
+              <span id="showing-info"></span>
+              <div class="sc-pagination__pages" id="pagination-pages"></div>
+            </div>
+          </div>
+
+          <aside class="card sc-filter-panel">
+            <div class="sc-filter-panel__header">
+              <h3>Filter Candidates</h3>
+              <button type="button" class="link-btn" id="reset-filters-btn">Reset</button>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-group__label">Skills</label>
+              <div class="filter-checkbox-list" id="skills-filter-list"></div>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-group__label">Experience Level</label>
+              <select id="experience-select">
+                <option value="">All Levels</option>
+                <option value="0-2">Entry Level (0–2 years)</option>
+                <option value="3-5">Mid Level (3–5 years)</option>
+                <option value="5-99">Senior Level (5+ years)</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-group__label">Location</label>
+              <div class="filter-checkbox-list" id="location-filter-list"></div>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-group__label">Education</label>
+              <select id="education-select">
+                <option value="">All Education Levels</option>
+                <option value="High School">High School</option>
+                <option value="Associate">Associate Degree</option>
+                <option value="Bachelor">Bachelor's Degree</option>
+                <option value="Master">Master's Degree</option>
+                <option value="PhD">PhD</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-group__label">Availability</label>
+              <select id="availability-select">
+                <option value="">Any Availability</option>
+                <option value="Available">Available</option>
+                <option value="OpenToOffers">Open to Offers</option>
+                <option value="NotLooking">Not Looking</option>
+                <option value="NotAvailable">Not Available</option>
+              </select>
+            </div>
+
+            <button type="button" class="btn-primary" id="apply-filters-btn">Apply Filters</button>
+          </aside>
+
+        </section>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script src="Scripts/sidebar.js"></script>
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/toast.js"></script>
+  <script src="Scripts/savedCandidates.js"></script>
+</body>
+</html>

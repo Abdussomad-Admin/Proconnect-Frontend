@@ -11,18 +11,11 @@
   const pendingSpeakers = [];
   let createdEventId = editEventId || null;
 
-  function showToast(message, type = "success") {
-    const container = document.getElementById("toast-container");
-    const toast = document.createElement("div");
-    toast.className = `toast toast--${type}`;
-    toast.textContent = message;
-    container.appendChild(toast);
-    setTimeout(() => toast.classList.add("is-visible"), 10);
-    setTimeout(() => {
-      toast.classList.remove("is-visible");
-      setTimeout(() => toast.remove(), 300);
-    }, 3500);
-  }
+  // NOTE: showToast is now the global one from Scripts/toast.js (loaded via
+  // a <script> tag on this page) — the local duplicate that used to live
+  // here has been removed. Its default type was "success"; the global
+  // default is "info", so the two calls below that relied on the old
+  // default now pass "success" explicitly.
 
   async function apiRequest(url, options = {}) {
     const response = await fetch(url, {
@@ -221,7 +214,7 @@
         if (speaker.photo) formData.append("Photo", speaker.photo);
 
         const result = await apiRequest(API_ROUTES.addEventSpeaker, { method: "POST", body: formData });
-        showToast("Speaker added");
+        showToast("Speaker added", "success");
         // Prefer the real uploaded URL from the server response over the
         // local blob preview, once/if the backend returns one.
         if (result.data?.photoUrl) speaker.photoUrl = result.data.photoUrl;
@@ -348,7 +341,7 @@
         await apiRequest(API_ROUTES.uploadEventCoverImage, { method: "POST", body: coverFormData });
       }
 
-      showToast(isDraft ? "Event saved as draft" : "Event published successfully");
+      showToast(isDraft ? "Event saved as draft" : "Event published successfully", "success");
       setTimeout(() => (window.location.href = `manage-event.html?id=${eventId}`), 800);
     } catch (err) {
       showToast(err.message, "error");

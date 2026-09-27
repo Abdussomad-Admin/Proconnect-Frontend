@@ -7,14 +7,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const alertBox = document.getElementById("form-alert");
   let networkChart = null;
   let followerChart = null;
-
-  function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
-  }
 
   function escapeHtml(str) {
     if (str == null) return "";
@@ -111,7 +105,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       if (!dashboardRes.ok || !result.data) {
-        showAlert(result.message || "Couldn't load your analytics.");
+        showToast(result.message || "Couldn't load your analytics.", "error");
         return;
       }
 
@@ -133,7 +127,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     } catch (err) {
       console.error("Analytics dashboard fetch threw an error:", err);
-      showAlert("Couldn't reach the server. Check your connection and try again.");
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     }
   }
 

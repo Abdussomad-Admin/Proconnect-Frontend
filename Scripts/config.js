@@ -19,7 +19,8 @@ const API_ROUTES = {
   addCertificate: `${API_BASE_URL}/Professional/add-certificate`,
   addProject: `${API_BASE_URL}/Professional/add-project`,
   addProfessionalSkill: `${API_BASE_URL}/Professional/add-professional-skills`,
-    getSkills: `${API_BASE_URL}/Professional/skills`,
+  getSkills: `${API_BASE_URL}/Professional/skills`,
+  createSkill: `${API_BASE_URL}/Professional/skills`,
 
   // ---- Recruiter / Company (Module 3) ----
   createCompany: `${API_BASE_URL}/Recruiter`,
@@ -113,6 +114,7 @@ unhideConversation: `${API_BASE_URL}/Messages/unhide`,
   getApplicationsByJob: `${API_BASE_URL}/Job/applications/job`,
   getApplicationsByProfessional: `${API_BASE_URL}/Job/applications/professional`,
   getJobCategories: `${API_BASE_URL}/Recruiter/departments`,
+  getJobManagementOverview: `${API_BASE_URL}/Job/management-overview`,
 
   getApplicationsByRecruiter: `${API_BASE_URL}/Job/applications/recruiter`,
   scheduleInterview: `${API_BASE_URL}/Job/schedule-interview`,

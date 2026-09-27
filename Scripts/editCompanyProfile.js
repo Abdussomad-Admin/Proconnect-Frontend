@@ -1,21 +1,11 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const loadingState = document.getElementById("loading-state");
-  const alertBox = document.getElementById("form-alert");
   const editLayout = document.getElementById("edit-layout");
 
   const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
   const companyId = localStorage.getItem("pc_company_id");
 
   let currentCompany = null;
-
-  function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
-  }
-
-  function hideAlert() {
-    alertBox.hidden = true;
-  }
 
   function escapeHtml(str) {
     const div = document.createElement("div");
@@ -40,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (!token || !companyId) {
     loadingState.hidden = true;
-    showAlert("No connected company found. Create or join a company first.");
+    showToast("No connected company found. Create or join a company first.", "error");
     return;
   }
 
@@ -167,7 +157,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!file) return;
 
     if (file.size > maxSizeBytes) {
-      alert(`That image is too large. Please choose one under ${Math.round(maxSizeBytes / (1024 * 1024))}MB.`);
+      showToast(`That image is too large. Please choose one under ${Math.round(maxSizeBytes / (1024 * 1024))}MB.`, "error");
       return;
     }
 
@@ -185,14 +175,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (!response.ok || !result.data) {
         console.error(`${routeKey} failed:`, response.status, result);
-        alert(result.message || "Couldn't upload the image. Please try again.");
+        showToast(result.message || "Couldn't upload the image. Please try again.", "error");
         return;
       }
 
       onSuccess(result.data);
     } catch (err) {
       console.error(`${routeKey} threw an error:`, err);
-      alert("Couldn't reach the server. Check your connection and try again.");
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     }
   }
 
@@ -231,8 +221,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const saveBtn = document.getElementById("edit-save-btn");
 
   saveBtn.addEventListener("click", async () => {
-    hideAlert();
-
     const name = nameInput.value.trim();
     const industry = industrySelect.value;
     const description = aboutEditor.value.trim();
@@ -245,7 +233,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const locationCity = locationInput.value.trim();
 
     if (!name || !industry || !description || !email || !phoneNumber || !companySize || !companyType) {
-      showAlert("Please fill in all required fields before saving.");
+      showToast("Please fill in all required fields before saving.", "error");
       return;
     }
 
@@ -286,14 +274,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || !result.status) {
-        showAlert(result.message || "Couldn't save your changes. Please try again.");
+        showToast(result.message || "Couldn't save your changes. Please try again.", "error");
         return;
       }
 
       window.location.href = "company-profile.html";
     } catch (err) {
       console.error("Save company profile threw an error:", err);
-      showAlert("Couldn't reach the server. Check your connection and try again.");
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     } finally {
       saveBtn.disabled = false;
       saveBtn.classList.remove("is-saving");
@@ -311,7 +299,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (!response.ok || !result.data) {
       loadingState.hidden = true;
-      showAlert(result.message || "Couldn't load your company profile.");
+      showToast(result.message || "Couldn't load your company profile.", "error");
       return;
     }
 
@@ -322,6 +310,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     editLayout.hidden = false;
   } catch (err) {
     loadingState.hidden = true;
-    showAlert("Couldn't reach the server. Check your connection and try again.");
+    showToast("Couldn't reach the server. Check your connection and try again.", "error");
   }
 });

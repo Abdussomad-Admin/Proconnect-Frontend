@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const alertBox = document.getElementById("form-alert");
   const loadingEl = document.getElementById("job-loading");
   const contentEl = document.getElementById("edit-content");
 
@@ -41,18 +40,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
+  // Thin wrapper kept so every existing showAlert(message, isSuccess) call
+  // site below didn't need touching — now routes to the global toast
+  // (Scripts/toast.js) instead of the old #form-alert div.
   function showAlert(message, isSuccess = false) {
-    alertBox.textContent = message;
-    alertBox.classList.toggle("form-alert--success", isSuccess);
-    alertBox.hidden = false;
-    alertBox.scrollIntoView({ behavior: "smooth", block: "start" });
+    showToast(message, isSuccess ? "success" : "error");
   }
 
-  function hideAlert() {
-    alertBox.hidden = true;
-    alertBox.textContent = "";
-    alertBox.classList.remove("form-alert--success");
-  }
+  // No-op now — toasts auto-dismiss themselves, so there's no persistent
+  // alert box left to hide. Kept so existing hideAlert() call sites don't
+  // need to be touched.
+  function hideAlert() {}
 
   function clearFieldError(id) {
     const err = document.getElementById(`err-${id}`);
