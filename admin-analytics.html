@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Analytics · ProConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="Styles/admin-layout.css" />
+  <link rel="stylesheet" href="Styles/admin-common.css" />
+  <style>
+    .ad-stats-5 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+    .ad-stat {
+      display: flex; align-items: center; gap: 12px; background: var(--ad-surface);
+      border: 1px solid var(--ad-border); border-radius: var(--ad-radius-lg); padding: 1rem 1.1rem;
+    }
+    .ad-stat__icon {
+      width: 42px; height: 42px; min-width: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 19px; background: var(--ad-purple-light); color: var(--ad-purple);
+    }
+    .ad-stat--green .ad-stat__icon { background: #E3F5EA; color: #1F9254; }
+    .ad-stat--blue .ad-stat__icon { background: #E3EEFB; color: #2B6CB0; }
+    .ad-stat--orange .ad-stat__icon { background: #FDF0E0; color: #D9822B; }
+    .ad-stat--red .ad-stat__icon { background: #FCEAEA; color: #D64545; }
+    .ad-stat__label { font-size: 12px; font-weight: 600; color: var(--ad-text-2); }
+    .ad-stat__value { font-size: 23px; font-weight: 700; color: var(--ad-heading); line-height: 1.1; }
+
+    .ad-grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; align-items: start; }
+    .ad-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; align-items: start; }
+    @media (max-width: 1100px) { .ad-grid-2, .ad-grid-3 { grid-template-columns: 1fr; } }
+
+    .ad-card-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .ad-card-title h3 { margin: 0; font-size: 15px; color: var(--ad-heading); }
+    .ad-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--ad-text-2); }
+    .ad-legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .ad-legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+    .ad-donut-wrap { display: flex; align-items: center; gap: 1.25rem; }
+    .ad-donut-legend { display: flex; flex-direction: column; gap: 10px; flex: 1; margin: 0; padding: 0; }
+    .ad-donut-legend li { list-style: none; display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; }
+    .ad-donut-legend .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+
+    .ad-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .ad-bar-row:last-child { margin-bottom: 0; }
+    .ad-bar-row__label { width: 140px; flex-shrink: 0; font-size: 12.5px; color: var(--ad-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ad-bar-row__bar { flex: 1; height: 7px; border-radius: 999px; background: var(--ad-page); overflow: hidden; }
+    .ad-bar-row__fill { height: 100%; background: var(--ad-purple); border-radius: 999px; }
+    .ad-bar-row__count { font-size: 12.5px; font-weight: 700; color: var(--ad-heading); min-width: 24px; text-align: right; }
+
+    .ad-company-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--ad-border); }
+    .ad-company-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .ad-company-row img, .ad-company-row .ad-fallback {
+      width: 34px; height: 34px; border-radius: 8px; object-fit: cover; flex-shrink: 0;
+      background: var(--ad-purple-light); color: var(--ad-purple);
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;
+    }
+    .ad-company-row__body { flex: 1; min-width: 0; }
+    .ad-company-row__name { font-size: 13px; font-weight: 600; color: var(--ad-text); }
+    .ad-company-row__meta { font-size: 11.5px; color: var(--ad-text-muted); }
+    .ad-company-row__pct { font-size: 12.5px; font-weight: 700; color: var(--ad-purple); }
+
+    .ad-list { display: flex; flex-direction: column; gap: 14px; }
+    .ad-list-row { display: flex; align-items: center; gap: 10px; }
+    .ad-activity-icon {
+      width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 15px;
+      background: var(--ad-purple-light); color: var(--ad-purple);
+    }
+    .ad-list-row__body { min-width: 0; flex: 1; }
+    .ad-list-row__title { font-size: 13px; font-weight: 600; color: var(--ad-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ad-list-row__sub { font-size: 11.5px; color: var(--ad-text-muted); }
+    .ad-list-row__meta { font-size: 11px; color: var(--ad-text-muted); white-space: nowrap; }
+
+    .ad-skeleton { background: linear-gradient(90deg, var(--ad-page) 25%, #ECEBF7 37%, var(--ad-page) 63%); background-size: 400% 100%; animation: ad-shimmer 1.4s ease infinite; border-radius: 8px; }
+    @keyframes ad-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+  </style>
+</head>
+
+<body
+  data-page="admin-analytics"
+  data-title="Admin Analytics"
+  data-subtitle="Comprehensive insights into platform performance, user growth, and engagement."
+  data-icon="ti-chart-bar">
+
+  <main id="admin-content">
+    <section class="ad-stats-5" id="ad-stats">
+      <div class="ad-skeleton" style="height:84px;"></div>
+      <div class="ad-skeleton" style="height:84px;"></div>
+      <div class="ad-skeleton" style="height:84px;"></div>
+      <div class="ad-skeleton" style="height:84px;"></div>
+      <div class="ad-skeleton" style="height:84px;"></div>
+    </section>
+
+    <div class="ad-grid-2">
+      <div class="ad-card">
+        <div class="ad-card-title">
+          <h3>User Growth</h3>
+          <span class="ad-legend" id="ad-growth-legend"></span>
+        </div>
+        <div id="ad-growth-chart"><div class="ad-skeleton" style="height:220px;"></div></div>
+      </div>
+
+      <div class="ad-card">
+        <div class="ad-card-title"><h3>User Distribution</h3></div>
+        <div id="ad-distribution"><div class="ad-skeleton" style="height:180px;"></div></div>
+      </div>
+    </div>
+
+    <div class="ad-grid-2">
+      <div class="ad-card">
+        <div class="ad-card-title">
+          <h3>Platform Activity</h3>
+          <span class="ad-legend" id="ad-activity-legend"></span>
+        </div>
+        <div id="ad-activity-chart"><div class="ad-skeleton" style="height:200px;"></div></div>
+      </div>
+
+      <div class="ad-card">
+        <div class="ad-card-title"><h3>Reports by Type</h3></div>
+        <div id="ad-reports-by-type"><div class="ad-skeleton" style="height:180px;"></div></div>
+      </div>
+    </div>
+
+    <div class="ad-grid-3">
+      <div class="ad-card">
+        <div class="ad-card-title"><h3>Top 5 Job Categories</h3></div>
+        <div id="ad-top-categories"><div class="ad-skeleton" style="height:160px;"></div></div>
+      </div>
+
+      <div class="ad-card">
+        <div class="ad-card-title"><h3>Top Companies by Activity</h3></div>
+        <div id="ad-top-companies"><div class="ad-skeleton" style="height:160px;"></div></div>
+      </div>
+
+      <div class="ad-card">
+        <div class="ad-card-title"><h3>Recent Platform Activity</h3></div>
+        <div class="ad-list" id="ad-recent-activity"><div class="ad-skeleton" style="height:160px;"></div></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/adminLayout.js"></script>
+  <script>
+    function authHeaders() {
+      const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    }
+    function esc(v) { return String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+    function fmtNum(n) { return Number(n ?? 0).toLocaleString(); }
+    function fmtDate(iso) {
+      if (!iso) return "—";
+      const d = new Date(iso);
+      const now = new Date();
+      const diffMin = Math.round((now - d) / 60000);
+      if (diffMin < 1) return "just now";
+      if (diffMin < 60) return `${diffMin} min${diffMin === 1 ? "" : "s"} ago`;
+      const diffHr = Math.round(diffMin / 60);
+      if (diffHr < 24) return `${diffHr} hour${diffHr === 1 ? "" : "s"} ago`;
+      return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    }
+
+    async function fetchAnalytics() {
+      const res = await fetch(API_ROUTES.adminAnalytics, { headers: authHeaders() });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) throw new Error(body.message || "Failed to load analytics");
+      return body.data;
+    }
+
+    function renderStats(d) {
+      const items = [
+        { label: "Total Users", value: d.totalUsers, icon: "ti-users", color: "" },
+        { label: "Total Companies", value: d.totalCompanies, icon: "ti-building", color: "green" },
+        { label: "Jobs Posted", value: d.totalJobsPosted, icon: "ti-briefcase", color: "blue" },
+        { label: "Total Posts", value: d.totalPosts, icon: "ti-article", color: "orange" },
+        { label: "Total Reports", value: d.totalReports, icon: "ti-shield-check", color: "red" },
+      ];
+      document.getElementById("ad-stats").innerHTML = items.map(s => `
+        <div class="ad-stat${s.color ? ` ad-stat--${s.color}` : ""}">
+          <span class="ad-stat__icon"><i class="ti ${s.icon}" aria-hidden="true"></i></span>
+          <div>
+            <div class="ad-stat__label">${s.label}</div>
+            <div class="ad-stat__value">${fmtNum(s.value)}</div>
+          </div>
+        </div>`).join("");
+    }
+
+    function renderLineChart(containerId, legendId, rows, series) {
+      const el = document.getElementById(containerId);
+      const legendEl = document.getElementById(legendId);
+
+      if (!rows || rows.length === 0) {
+        el.innerHTML = `<div class="ad-empty">No data for this period.</div>`;
+        if (legendEl) legendEl.innerHTML = "";
+        return;
+      }
+
+      if (legendEl) legendEl.innerHTML = series.map(s => `<span><i style="background:${s.color}"></i>${s.name}</span>`).join("");
+
+      const w = 640, h = 220, padL = 32, padB = 24, padT = 12, padR = 12;
+      const innerW = w - padL - padR, innerH = h - padT - padB;
+      const maxVal = Math.max(1, ...rows.map(r => Math.max(...series.map(s => r[s.key] || 0))));
+      const stepX = rows.length > 1 ? innerW / (rows.length - 1) : 0;
+
+      const toPoints = (key) => rows.map((r, i) => {
+        const x = padL + i * stepX;
+        const y = padT + innerH - ((r[key] || 0) / maxVal) * innerH;
+        return `${x},${y}`;
+      }).join(" ");
+
+      const gridLines = [0, 0.5, 1].map(f => {
+        const y = padT + innerH * f;
+        return `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="#E4E3EF" stroke-width="1" />`;
+      }).join("");
+
+      const labelEvery = Math.max(1, Math.ceil(rows.length / 7));
+      const xLabels = rows.map((r, i) => {
+        if (i % labelEvery !== 0 && i !== rows.length - 1) return "";
+        const x = padL + i * stepX;
+        const d = new Date(r.date);
+        const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        return `<text x="${x}" y="${h - 4}" font-size="9.5" fill="#9A9AAE" text-anchor="middle">${label}</text>`;
+      }).join("");
+
+      const lines = series.map(s => `<polyline fill="none" stroke="${s.color}" stroke-width="2.5" points="${toPoints(s.key)}" />`).join("");
+
+      el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" style="width:100%; height:auto; display:block;">${gridLines}${lines}${xLabels}</svg>`;
+    }
+
+    function renderDonut(containerId, items, labelKey, countKey, pctKey) {
+      const el = document.getElementById(containerId);
+      if (!items || items.length === 0 || items.every(i => i[countKey] === 0)) {
+        el.innerHTML = `<div class="ad-empty">No data yet.</div>`;
+        return;
+      }
+
+      const colors = ["#5B3FE0", "#2B6CB0", "#1F9254", "#D9822B", "#D64545"];
+      const total = items.reduce((sum, i) => sum + i[countKey], 0);
+      const r = 50, cx = 60, cy = 60, strokeW = 18;
+      const circumference = 2 * Math.PI * r;
+      let offset = 0;
+
+      const arcs = items.map((item, i) => {
+        const frac = total === 0 ? 0 : item[countKey] / total;
+        const dash = frac * circumference;
+        const circle = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${colors[i % colors.length]}"
+          stroke-width="${strokeW}" stroke-dasharray="${dash} ${circumference - dash}"
+          stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" />`;
+        offset += dash;
+        return circle;
+      }).join("");
+
+      const legend = items.map((item, i) => `
+        <li>
+          <span style="display:flex; align-items:center; color:var(--ad-text);"><span class="dot" style="background:${colors[i % colors.length]}"></span>${esc(item[labelKey])}</span>
+          <span style="font-weight:700; color:var(--ad-heading);">${fmtNum(item[countKey])} &middot; ${item[pctKey]}%</span>
+        </li>`).join("");
+
+      el.innerHTML = `
+        <div class="ad-donut-wrap">
+          <svg viewBox="0 0 120 120" width="120" height="120">${arcs}</svg>
+          <ul class="ad-donut-legend">${legend}</ul>
+        </div>`;
+    }
+
+    function renderBars(containerId, items, labelKey, countKey) {
+      const el = document.getElementById(containerId);
+      if (!items || items.length === 0) { el.innerHTML = `<div class="ad-empty">No data yet.</div>`; return; }
+      const max = Math.max(1, ...items.map(i => i[countKey]));
+
+      el.innerHTML = items.map(i => `
+        <div class="ad-bar-row">
+          <span class="ad-bar-row__label" title="${esc(i[labelKey])}">${esc(i[labelKey])}</span>
+          <span class="ad-bar-row__bar"><span class="ad-bar-row__fill" style="width:${(i[countKey] / max) * 100}%"></span></span>
+          <span class="ad-bar-row__count">${fmtNum(i[countKey])}</span>
+        </div>`).join("");
+    }
+
+    function renderTopCompanies(items) {
+      const el = document.getElementById("ad-top-companies");
+      if (!items || items.length === 0) { el.innerHTML = `<div class="ad-empty">No company activity this period.</div>`; return; }
+
+      el.innerHTML = items.map(c => `
+        <div class="ad-company-row">
+          ${c.logoUrl ? `<img src="${esc(c.logoUrl)}" alt="" />` : `<span class="ad-fallback">${esc((c.companyName || "?").charAt(0).toUpperCase())}</span>`}
+          <div class="ad-company-row__body">
+            <div class="ad-company-row__name">${esc(c.companyName)}</div>
+            <div class="ad-company-row__meta">${c.jobsPosted} jobs &middot; ${c.applications} applications</div>
+          </div>
+          <span class="ad-company-row__pct">${c.engagementPercent}%</span>
+        </div>`).join("");
+    }
+
+    function renderRecentActivity(items) {
+      const el = document.getElementById("ad-recent-activity");
+      if (!items || items.length === 0) { el.innerHTML = `<div class="ad-empty">No recent activity.</div>`; return; }
+
+      el.innerHTML = items.map(a => `
+        <div class="ad-list-row">
+          <span class="ad-activity-icon"><i class="ti ti-activity" aria-hidden="true"></i></span>
+          <div class="ad-list-row__body">
+            <div class="ad-list-row__title">${esc(a.action)}</div>
+            <div class="ad-list-row__sub">${esc(a.description)}</div>
+          </div>
+          <span class="ad-list-row__meta">${fmtDate(a.occurredAt)}</span>
+        </div>`).join("");
+    }
+
+    async function init() {
+      try {
+        const d = await fetchAnalytics();
+
+        renderStats(d);
+
+        renderLineChart("ad-growth-chart", "ad-growth-legend", d.userGrowth, [
+          { key: "total", name: "Total", color: "#5B3FE0" },
+          { key: "professionals", name: "Professionals", color: "#2B6CB0" },
+          { key: "recruiters", name: "Recruiters", color: "#1F9254" },
+        ]);
+
+        renderDonut("ad-distribution", d.userDistribution, "role", "count", "percent");
+
+        renderLineChart("ad-activity-chart", "ad-activity-legend", d.platformActivity, [
+          { key: "posts", name: "Posts", color: "#5B3FE0" },
+          { key: "applications", name: "Applications", color: "#2B6CB0" },
+        ]);
+
+        renderDonut("ad-reports-by-type", d.reportsByReason, "reason", "count", "percent");
+
+        renderBars("ad-top-categories", d.topJobCategories, "category", "count");
+
+        renderTopCompanies(d.topCompaniesByActivity);
+
+        renderRecentActivity(d.recentActivity);
+      } catch (err) {
+        document.getElementById("admin-content").insertAdjacentHTML(
+          "afterbegin",
+          `<div class="ad-card" style="border-color:#D64545; color:#D64545;">Couldn't load analytics: ${esc(err.message)}</div>`
+        );
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

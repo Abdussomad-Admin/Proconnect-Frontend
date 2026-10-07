@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Company Details · ProConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="Styles/admin-layout.css" />
+  <link rel="stylesheet" href="Styles/admin-common.css" />
+</head>
+
+<body data-page="admin-companies" data-back-href="admin-companies.html" data-back-label="Back to Companies">
+  <main id="admin-content">
+    <div id="ad-company-detail">
+      <div class="ad-card"><div class="ad-skeleton" style="height:100px;"></div></div>
+    </div>
+  </main>
+
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/adminLayout.js"></script>
+  <script>
+    function authHeaders() {
+      const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    }
+    function esc(v) { return String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+    function fmtDate(iso) { return iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"; }
+    function getCompanyId() { return new URLSearchParams(location.search).get("id"); }
+
+    const STATUS_BADGE = { Active: "success", Pending: "warn", Suspended: "danger", Inactive: "" };
+    const STATUS_LABEL = { Active: "Active", Pending: "Pending Verification", Suspended: "Suspended", Inactive: "Inactive" };
+    function statusBadge(status) {
+      const tone = STATUS_BADGE[status] ?? "";
+      return `<span class="ad-badge${tone ? ` ad-badge--${tone}` : ""}">${esc(STATUS_LABEL[status] || status)}</span>`;
+    }
+    const RECRUITER_STATUS_BADGE = { Active: "success", Pending: "warn", Suspended: "danger" };
+    function recruiterStatusBadge(status) {
+      const tone = RECRUITER_STATUS_BADGE[status] || "";
+      return `<span class="ad-badge${tone ? ` ad-badge--${tone}` : ""}">${esc(status)}</span>`;
+    }
+
+    function actionsFor(status) {
+      const actions = [];
+      if (status !== "Active") actions.push({ action: "verify", label: "Verify Company", icon: "ti-circle-check", kind: "primary" });
+      if (status === "Suspended") actions.push({ action: "restore", label: "Restore Company", icon: "ti-rotate", kind: "default" });
+      if (status !== "Suspended") actions.push({ action: "suspend", label: "Suspend Company", icon: "ti-player-pause", kind: "danger" });
+      return actions;
+    }
+
+    async function fetchCompany(id) {
+      const res = await fetch(`${API_ROUTES.adminCompanies}/${id}`, { headers: authHeaders() });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) throw new Error(body.message || "Failed to load company");
+      return body.data;
+    }
+
+    async function performAction(companyId, action) {
+      const reason = prompt("Reason for this action (optional):") || null;
+      const res = await fetch(`${API_ROUTES.adminCompanies}/${companyId}/${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ reason }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) { alert(body.message || "Action failed"); return; }
+      render(await fetchCompany(getCompanyId()));
+    }
+
+    function render(c) {
+      const el = document.getElementById("ad-company-detail");
+
+      const logo = c.logoUrl
+        ? `<img class="ad-detail-banner__photo is-square" src="${esc(c.logoUrl)}" alt="" />`
+        : `<span class="ad-detail-banner__photo is-square ad-fallback" style="display:flex;align-items:center;justify-content:center;font-size:24px;">${esc((c.name || "?").charAt(0).toUpperCase())}</span>`;
+
+      const recruitersHtml = (c.recruiters && c.recruiters.length > 0)
+        ? c.recruiters.map(r => `
+            <div class="ad-cell-user" style="padding:8px 0; border-bottom:1px solid var(--ad-border);">
+              ${r.avatarUrl ? `<img src="${esc(r.avatarUrl)}" alt="" />` : `<span class="ad-fallback">${esc((r.name || "?").charAt(0).toUpperCase())}</span>`}
+              <div style="flex:1; min-width:0;">
+                <strong>${esc(r.name)}${r.isCompanyAdmin ? ' <span class="ad-badge ad-badge--purple" style="margin-left:4px;">Admin</span>' : ""}</strong>
+                <span>${esc(r.jobTitle || "—")}</span>
+              </div>
+              ${recruiterStatusBadge(r.status)}
+            </div>`).join("")
+        : `<div class="ad-empty">No recruiters on this company yet.</div>`;
+
+      el.innerHTML = `
+        <div class="ad-card ad-detail-banner">
+          ${logo}
+          <div class="ad-detail-banner__info">
+            <div class="ad-detail-banner__name-row">
+              <h2>${esc(c.name)}</h2>
+              <span class="ad-badge ad-badge--purple">${esc(c.industry)}</span>
+              ${statusBadge(c.status)}
+              ${c.isVerified ? '<span class="ad-badge ad-badge--info"><i class="ti ti-circle-check" aria-hidden="true"></i>&nbsp;Verified</span>' : ""}
+            </div>
+            <div class="ad-detail-banner__sub">${esc(c.description || "")}</div>
+            <div class="ad-detail-banner__meta">
+              ${c.headquarters ? `<span><i class="ti ti-map-pin"></i>${esc(c.headquarters)}</span>` : ""}
+              ${c.website ? `<span><i class="ti ti-link"></i><a href="${esc(c.website)}" target="_blank" rel="noopener" style="color:var(--ad-purple);">${esc(c.website)}</a></span>` : ""}
+              <span><i class="ti ti-calendar"></i>Created ${fmtDate(c.createdDate)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ad-detail-split" style="margin-top:1.25rem;">
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div class="ad-card">
+              <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Company Information</h3>
+              <dl class="ad-field-grid">
+                <div><dt>Email</dt><dd>${esc(c.email)}</dd></div>
+                <div><dt>Phone</dt><dd>${esc(c.phoneNumber)}</dd></div>
+                <div><dt>Company Size</dt><dd>${esc(c.companySize || "—")}</dd></div>
+                <div><dt>Founded</dt><dd>${c.foundedYear || "—"}</dd></div>
+              </dl>
+            </div>
+
+            <div class="ad-card">
+              <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Recruiters</h3>
+              ${recruitersHtml}
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div class="ad-card">
+              <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Administrative Actions</h3>
+              <div id="ad-action-buttons"></div>
+            </div>
+
+            <div class="ad-card">
+              <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Quick Stats</h3>
+              <div class="ad-stat-mini-grid">
+                <div class="ad-stat-mini"><strong>${c.activeJobsCount}</strong><span>Active Jobs</span></div>
+                <div class="ad-stat-mini"><strong>${c.totalApplicationsCount}</strong><span>Applications</span></div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+
+      const btnWrap = document.getElementById("ad-action-buttons");
+      btnWrap.innerHTML = actionsFor(c.status).map(a => `
+        <button type="button" class="ad-action-btn${a.kind === "primary" ? " ad-action-btn--primary" : a.kind === "danger" ? " ad-action-btn--danger" : ""}" data-action="${a.action}">
+          <i class="ti ${a.icon}" aria-hidden="true"></i> ${a.label}
+        </button>`).join("");
+      btnWrap.querySelectorAll("button[data-action]").forEach(btn => btn.addEventListener("click", () => performAction(c.companyId, btn.dataset.action)));
+    }
+
+    async function init() {
+      const id = getCompanyId();
+      if (!id) { document.getElementById("ad-company-detail").innerHTML = `<div class="ad-card"><div class="ad-empty">No company id given in the URL.</div></div>`; return; }
+      try {
+        render(await fetchCompany(id));
+      } catch (err) {
+        document.getElementById("ad-company-detail").innerHTML = `<div class="ad-card"><div class="ad-empty" style="color:#D64545;">Couldn't load company: ${esc(err.message)}</div></div>`;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

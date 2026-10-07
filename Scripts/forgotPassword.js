@@ -1,18 +1,15 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("forgot-form");
-  const alertBox = document.getElementById("form-alert");
   const btnSend = document.getElementById("btn-send-code");
   const sendLabel = document.getElementById("send-code-label");
   const emailInput = document.getElementById("email");
 
-  function hideAlert() {
-    alertBox.hidden = true;
-    alertBox.textContent = "";
-  }
+  // No-op now — toasts auto-dismiss themselves, so there's no persistent
+  // alert box left to hide.
+  function hideAlert() {}
 
   function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
+    showToast(message, "error");
   }
 
   function clearFieldError(id) {

@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const alertBox = document.getElementById("form-alert");
   let allApplications = [];
   let currentStatus = "";
 
@@ -19,8 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
+    showToast(message, "error");
   }
 
   function employmentLabel(type) {
@@ -294,7 +292,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       withdrawOverlay.hidden = true;
       detailPanel.hidden = true;
-      showAlert("Application withdrawn.");
+      showToast("Application withdrawn.", "success");
       await loadApplications();
 
     } catch (err) {

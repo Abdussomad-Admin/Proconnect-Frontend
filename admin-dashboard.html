@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard · ProConnect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="Styles/admin-layout.css" />
+  <style>
+    .ad-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .ad-stat {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--ad-surface);
+      border: 1px solid var(--ad-border);
+      border-radius: var(--ad-radius-lg);
+      padding: 1rem 1.1rem;
+    }
+    .ad-stat__icon {
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      background: var(--ad-purple-light);
+      color: var(--ad-purple);
+    }
+    .ad-stat--green .ad-stat__icon { background: #E3F5EA; color: #1F9254; }
+    .ad-stat--blue .ad-stat__icon { background: #E3EEFB; color: #2B6CB0; }
+    .ad-stat--orange .ad-stat__icon { background: #FDF0E0; color: #D9822B; }
+    .ad-stat--red .ad-stat__icon { background: #FCEAEA; color: #D64545; }
+    .ad-stat__label { font-size: 12px; font-weight: 600; color: var(--ad-text-2); }
+    .ad-stat__row { display: flex; align-items: baseline; gap: 8px; margin: 2px 0; }
+    .ad-stat__value { font-size: 23px; font-weight: 700; color: var(--ad-heading); line-height: 1.1; }
+    .ad-stat__trend { font-size: 11.5px; font-weight: 700; }
+    .ad-stat__trend.is-up { color: #1F9254; }
+    .ad-stat__trend.is-down { color: #D64545; }
+    .ad-stat__sub { font-size: 11px; color: var(--ad-text-muted); }
+
+    .ad-grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; align-items: start; }
+    .ad-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; align-items: start; }
+    @media (max-width: 1100px) {
+      .ad-grid-2, .ad-grid-3 { grid-template-columns: 1fr; }
+    }
+
+    .ad-card-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .ad-card-title h3 { margin: 0; font-size: 15px; color: var(--ad-heading); }
+
+    .ad-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--ad-text-2); }
+    .ad-legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .ad-legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+    .ad-donut-wrap { display: flex; align-items: center; gap: 1.25rem; }
+    .ad-donut-legend { display: flex; flex-direction: column; gap: 10px; flex: 1; margin: 0; padding: 0; }
+    .ad-donut-legend li { list-style: none; display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; }
+    .ad-donut-legend .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+    .ad-donut-legend .name { display: flex; align-items: center; color: var(--ad-text); }
+    .ad-donut-legend .val { font-weight: 700; color: var(--ad-heading); }
+
+    .ad-list { display: flex; flex-direction: column; gap: 14px; }
+    .ad-list-row { display: flex; align-items: center; gap: 10px; }
+    .ad-list-row img, .ad-list-row .ad-fallback {
+      width: 34px; height: 34px; border-radius: 50%; object-fit: cover;
+      background: var(--ad-purple-light); color: var(--ad-purple);
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0;
+    }
+    .ad-list-row__body { min-width: 0; flex: 1; }
+    .ad-list-row__title { font-size: 13px; font-weight: 600; color: var(--ad-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ad-list-row__sub { font-size: 11.5px; color: var(--ad-text-muted); }
+    .ad-list-row__meta { font-size: 11px; color: var(--ad-text-muted); white-space: nowrap; }
+
+    .ad-activity-icon {
+      width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 15px;
+      background: var(--ad-purple-light); color: var(--ad-purple);
+    }
+
+    .ad-report-row { display: flex; align-items: center; gap: 10px; }
+    .ad-report-row__bar { flex: 1; height: 7px; border-radius: 999px; background: var(--ad-page); overflow: hidden; }
+    .ad-report-row__fill { height: 100%; background: var(--ad-purple); border-radius: 999px; }
+    .ad-report-row__count { font-size: 12.5px; font-weight: 700; color: var(--ad-heading); min-width: 22px; text-align: right; }
+    .ad-report-row__label { font-size: 12.5px; color: var(--ad-text); width: 150px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .ad-health-strip { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .ad-health-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ad-text); }
+    .ad-health-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .ad-health-dot.ok { background: #1F9254; }
+    .ad-health-dot.warn { background: #D9822B; }
+    .ad-health-dot.down { background: #D64545; }
+
+    .ad-skeleton { background: linear-gradient(90deg, var(--ad-page) 25%, #ECEBF7 37%, var(--ad-page) 63%); background-size: 400% 100%; animation: ad-shimmer 1.4s ease infinite; border-radius: 8px; }
+    @keyframes ad-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+    .ad-empty { font-size: 12.5px; color: var(--ad-text-muted); padding: 1rem 0; text-align: center; }
+  </style>
+</head>
+
+<body
+  data-page="admin-dashboard"
+  data-title="Admin Dashboard"
+  data-subtitle="Platform overview and key metrics across all users, content and activity."
+  data-icon="ti-layout-dashboard">
+
+  <main id="admin-content">
+    <section class="ad-stats" id="ad-stats">
+      <div class="ad-skeleton" style="height:84px;"></div>
+      <div class="ad-skeleton" style="height:84px;"></div>
+      <div class="ad-skeleton" style="height:84px;"></div>
+      <div class="ad-skeleton" style="height:84px;"></div>
+    </section>
+
+    <div class="ad-grid-2">
+      <div class="ad-card">
+        <div class="ad-card-title">
+          <h3>User Registrations</h3>
+          <span class="ad-legend" id="ad-reg-legend"></span>
+        </div>
+        <div id="ad-registrations-chart"><div class="ad-skeleton" style="height:220px;"></div></div>
+      </div>
+
+      <div class="ad-card">
+        <div class="ad-card-title"><h3>User Distribution</h3></div>
+        <div id="ad-distribution"><div class="ad-skeleton" style="height:180px;"></div></div>
+      </div>
+    </div>
+
+    <div class="ad-grid-3">
+      <div class="ad-card">
+        <div class="ad-card-title"><h3>Recent Registrations</h3></div>
+        <div class="ad-list" id="ad-recent-registrations"><div class="ad-skeleton" style="height:160px;"></div></div>
+      </div>
+
+      <div class="ad-card">
+        <div class="ad-card-title"><h3>Recent Activity</h3></div>
+        <div class="ad-list" id="ad-recent-activity"><div class="ad-skeleton" style="height:160px;"></div></div>
+      </div>
+
+      <div class="ad-card">
+        <div class="ad-card-title"><h3>Top Reports</h3></div>
+        <div class="ad-list" id="ad-top-reports"><div class="ad-skeleton" style="height:160px;"></div></div>
+      </div>
+    </div>
+
+    <div class="ad-card">
+      <div class="ad-card-title"><h3>System Health</h3></div>
+      <div class="ad-health-strip" id="ad-health-strip"><div class="ad-skeleton" style="height:20px; width:260px;"></div></div>
+    </div>
+  </main>
+
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/adminLayout.js"></script>
+  <script>
+    function authHeaders() {
+      const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    }
+
+    function esc(v) {
+      return String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    function fmtNum(n) { return Number(n ?? 0).toLocaleString(); }
+
+    function fmtDate(iso) {
+      if (!iso) return "—";
+      const d = new Date(iso);
+      const now = new Date();
+      const diffMin = Math.round((now - d) / 60000);
+      if (diffMin < 1) return "just now";
+      if (diffMin < 60) return `${diffMin} min${diffMin === 1 ? "" : "s"} ago`;
+      const diffHr = Math.round(diffMin / 60);
+      if (diffHr < 24) return `${diffHr} hour${diffHr === 1 ? "" : "s"} ago`;
+      return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    }
+
+    async function fetchDashboard() {
+      const res = await fetch(API_ROUTES.adminDashboard, { headers: authHeaders() });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) throw new Error(body.message || "Failed to load dashboard");
+      return body.data;
+    }
+
+    const STAT_META = [
+      { key: "totalUsers",         label: "Total Users",          icon: "ti-users",          color: "" },
+      { key: "activeUsers",        label: "Active Users",         icon: "ti-user-check",     color: "green" },
+      { key: "professionals",      label: "Professionals",        icon: "ti-id-badge-2",     color: "blue" },
+      { key: "recruiters",         label: "Recruiters",           icon: "ti-user-search",    color: "" },
+      { key: "companies",          label: "Companies",            icon: "ti-building",       color: "green" },
+      { key: "activeJobs",         label: "Active Jobs",          icon: "ti-briefcase",      color: "blue" },
+      { key: "activeEvents",       label: "Active Events",        icon: "ti-calendar-event", color: "" },
+      { key: "posts",              label: "Posts",                icon: "ti-article",        color: "orange" },
+      { key: "pendingReports",     label: "Pending Reports",      icon: "ti-alert-triangle", color: "red", upIsGood: false },
+      { key: "restrictedAccounts", label: "Restricted Accounts",  icon: "ti-shield-lock",    color: "red", upIsGood: false },
+    ];
+
+    function renderStats(stats) {
+      const el = document.getElementById("ad-stats");
+      el.innerHTML = STAT_META.map((meta) => {
+        const stat = stats[meta.key];
+        if (!stat) return "";
+        const isUp = Number(stat.changePercent) >= 0;
+        const good = meta.upIsGood === false ? !isUp : isUp;
+        return `
+          <div class="ad-stat${meta.color ? ` ad-stat--${meta.color}` : ""}">
+            <span class="ad-stat__icon"><i class="ti ${meta.icon}" aria-hidden="true"></i></span>
+            <div>
+              <div class="ad-stat__label">${meta.label}</div>
+              <div class="ad-stat__row">
+                <span class="ad-stat__value">${fmtNum(stat.value)}</span>
+                <span class="ad-stat__trend ${good ? "is-up" : "is-down"}">
+                  <i class="ti ti-arrow-${isUp ? "up" : "down"}-right" aria-hidden="true"></i> ${Math.abs(stat.changePercent)}%
+                </span>
+              </div>
+              <div class="ad-stat__sub">vs. previous period</div>
+            </div>
+          </div>`;
+      }).join("");
+    }
+
+    function renderRegistrationsChart(rows) {
+      const el = document.getElementById("ad-registrations-chart");
+      const legendEl = document.getElementById("ad-reg-legend");
+
+      if (!rows || rows.length === 0) {
+        el.innerHTML = `<div class="ad-empty">No registration data for this period.</div>`;
+        legendEl.innerHTML = "";
+        return;
+      }
+
+      const series = [
+        { key: "total", name: "Total", color: "#5B3FE0" },
+        { key: "professionals", name: "Professionals", color: "#2B6CB0" },
+        { key: "recruiters", name: "Recruiters", color: "#1F9254" },
+      ];
+
+      legendEl.innerHTML = series.map(s => `<span><i style="background:${s.color}"></i>${s.name}</span>`).join("");
+
+      const w = 640, h = 220, padL = 32, padB = 24, padT = 12, padR = 12;
+      const innerW = w - padL - padR, innerH = h - padT - padB;
+
+      const maxVal = Math.max(1, ...rows.map(r => Math.max(r.total, r.professionals, r.recruiters)));
+      const stepX = rows.length > 1 ? innerW / (rows.length - 1) : 0;
+
+      const toPoints = (key) => rows.map((r, i) => {
+        const x = padL + i * stepX;
+        const y = padT + innerH - (r[key] / maxVal) * innerH;
+        return `${x},${y}`;
+      }).join(" ");
+
+      const gridLines = [0, 0.5, 1].map(f => {
+        const y = padT + innerH * f;
+        return `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="#E4E3EF" stroke-width="1" />`;
+      }).join("");
+
+      const labelEvery = Math.max(1, Math.ceil(rows.length / 7));
+      const xLabels = rows.map((r, i) => {
+        if (i % labelEvery !== 0 && i !== rows.length - 1) return "";
+        const x = padL + i * stepX;
+        const d = new Date(r.date);
+        const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        return `<text x="${x}" y="${h - 4}" font-size="9.5" fill="#9A9AAE" text-anchor="middle">${label}</text>`;
+      }).join("");
+
+      const lines = series.map(s => `<polyline fill="none" stroke="${s.color}" stroke-width="2.5" points="${toPoints(s.key)}" />`).join("");
+
+      el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" style="width:100%; height:auto; display:block;">${gridLines}${lines}${xLabels}</svg>`;
+    }
+
+    function renderDistribution(items) {
+      const el = document.getElementById("ad-distribution");
+
+      if (!items || items.length === 0 || items.every(i => i.count === 0)) {
+        el.innerHTML = `<div class="ad-empty">No user data yet.</div>`;
+        return;
+      }
+
+      const colors = ["#5B3FE0", "#2B6CB0", "#1F9254", "#D9822B"];
+      const total = items.reduce((sum, i) => sum + i.count, 0);
+
+      const r = 50, cx = 60, cy = 60, strokeW = 18;
+      const circumference = 2 * Math.PI * r;
+      let offset = 0;
+
+      const arcs = items.map((item, i) => {
+        const frac = total === 0 ? 0 : item.count / total;
+        const dash = frac * circumference;
+        const circle = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${colors[i % colors.length]}"
+          stroke-width="${strokeW}" stroke-dasharray="${dash} ${circumference - dash}"
+          stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" />`;
+        offset += dash;
+        return circle;
+      }).join("");
+
+      const legend = items.map((item, i) => `
+        <li>
+          <span class="name"><span class="dot" style="background:${colors[i % colors.length]}"></span>${esc(item.role)}</span>
+          <span class="val">${fmtNum(item.count)} &middot; ${item.percent}%</span>
+        </li>`).join("");
+
+      el.innerHTML = `
+        <div class="ad-donut-wrap">
+          <svg viewBox="0 0 120 120" width="120" height="120">${arcs}</svg>
+          <ul class="ad-donut-legend">${legend}</ul>
+        </div>`;
+    }
+
+    function renderRecentRegistrations(items) {
+      const el = document.getElementById("ad-recent-registrations");
+      if (!items || items.length === 0) { el.innerHTML = `<div class="ad-empty">No recent registrations.</div>`; return; }
+
+      el.innerHTML = items.map(u => `
+        <div class="ad-list-row">
+          ${u.avatarUrl ? `<img src="${esc(u.avatarUrl)}" alt="" />` : `<span class="ad-fallback">${esc((u.name || "?").charAt(0).toUpperCase())}</span>`}
+          <div class="ad-list-row__body">
+            <div class="ad-list-row__title">${esc(u.name)}</div>
+            <div class="ad-list-row__sub">${esc(u.type)}</div>
+          </div>
+          <span class="ad-list-row__meta">${fmtDate(u.joinedAt)}</span>
+        </div>`).join("");
+    }
+
+    function renderRecentActivity(items) {
+      const el = document.getElementById("ad-recent-activity");
+      if (!items || items.length === 0) { el.innerHTML = `<div class="ad-empty">No recent activity.</div>`; return; }
+
+      el.innerHTML = items.map(a => `
+        <div class="ad-list-row">
+          <span class="ad-activity-icon"><i class="ti ti-activity" aria-hidden="true"></i></span>
+          <div class="ad-list-row__body">
+            <div class="ad-list-row__title">${esc(a.action)}</div>
+            <div class="ad-list-row__sub">${esc(a.description)}</div>
+          </div>
+          <span class="ad-list-row__meta">${fmtDate(a.occurredAt)}</span>
+        </div>`).join("");
+    }
+
+    function renderTopReports(items) {
+      const el = document.getElementById("ad-top-reports");
+      if (!items || items.length === 0) { el.innerHTML = `<div class="ad-empty">No reports in this period.</div>`; return; }
+
+      const max = Math.max(1, ...items.map(r => r.count));
+
+      el.innerHTML = items.map(r => `
+        <div class="ad-report-row">
+          <span class="ad-report-row__label" title="${esc(r.contentType)} &middot; ${esc(r.reason)}">${esc(r.contentType)} &middot; ${esc(r.reason)}</span>
+          <span class="ad-report-row__bar"><span class="ad-report-row__fill" style="width:${(r.count / max) * 100}%"></span></span>
+          <span class="ad-report-row__count">${fmtNum(r.count)}</span>
+        </div>`).join("");
+    }
+
+    function renderHealth(health) {
+      const el = document.getElementById("ad-health-strip");
+      if (!health || !health.services || health.services.length === 0) {
+        el.innerHTML = `<div class="ad-empty">No health data available.</div>`;
+        return;
+      }
+
+      const toneFor = (status) => {
+        const s = String(status).toLowerCase();
+        if (s === "healthy" || s === "operational") return "ok";
+        if (s === "degraded") return "warn";
+        return "down";
+      };
+
+      el.innerHTML = health.services.map(s => `
+        <span class="ad-health-pill">
+          <span class="ad-health-dot ${toneFor(s.status)}"></span> ${esc(s.name)}
+        </span>`).join("");
+    }
+
+    async function init() {
+      try {
+        const data = await fetchDashboard();
+        renderStats(data.stats);
+        renderRegistrationsChart(data.registrationsByDay);
+        renderDistribution(data.userDistribution);
+        renderRecentRegistrations(data.recentRegistrations);
+        renderRecentActivity(data.recentActivity);
+        renderTopReports(data.topReports);
+        renderHealth(data.systemHealth);
+      } catch (err) {
+        document.getElementById("admin-content").insertAdjacentHTML(
+          "afterbegin",
+          `<div class="ad-card" style="border-color:#D64545; color:#D64545;">Couldn't load the dashboard: ${esc(err.message)}</div>`
+        );
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

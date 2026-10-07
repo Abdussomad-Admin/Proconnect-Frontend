@@ -66,6 +66,7 @@
   gap: 10px;
   padding: 9px 8px;
   border-radius: var(--pc-radius);
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   position: relative;
 }
@@ -410,10 +411,11 @@
 .message-bubble {
   position: relative;
   background: var(--pc-panel-bg);
-  border-radius: var(--pc-radius-lg);
+  border-radius: 8px;
   padding: 7px 9px 7px 11px;
   font-size: 13px;
   color: var(--pc-text-primary);
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
   line-height: 1.5;
   display: flex;
   flex-wrap: wrap;
@@ -910,4 +912,22 @@
   .messages-list-pane {
     display: none;
   }
+}
+
+.chat-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;   /* add this */
+}
+
+.messages-shell {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  height: 100%;
+  min-height: 0;   /* add this */
+  background: var(--pc-surface);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-lg);
+  overflow: hidden;
 }

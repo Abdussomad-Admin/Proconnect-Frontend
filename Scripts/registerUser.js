@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("register-form");
   const submitBtn = document.getElementById("submit-btn");
-  const alertBox = document.getElementById("form-alert");
 
   // Password toggles
   document.querySelectorAll(".icon-toggle").forEach((btn) => {
@@ -84,15 +83,15 @@ document.addEventListener("DOMContentLoaded", () => {
     return isValid;
   }
 
+  // Routes to the global toast (Scripts/toast.js) instead of the old
+  // #form-alert div; call sites are unchanged.
   function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
+    showToast(message, "error");
   }
 
-  function hideAlert() {
-    alertBox.hidden = true;
-    alertBox.textContent = "";
-  }
+  // No-op now — toasts auto-dismiss themselves, so there's no persistent
+  // alert box left to hide.
+  function hideAlert() {}
 
   function setLoading(isLoading) {
     submitBtn.disabled = isLoading;

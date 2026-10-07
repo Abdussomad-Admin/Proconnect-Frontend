@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Users · ProConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="Styles/admin-layout.css" />
+  <style>
+    .ad-filterbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      background: var(--ad-surface);
+      border: 1px solid var(--ad-border);
+      border-radius: var(--ad-radius-lg);
+      padding: 0.85rem 1rem;
+    }
+    .ad-filter-search {
+      flex: 1 1 240px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 38px;
+      padding: 0 12px;
+      border: 1px solid var(--ad-border);
+      border-radius: var(--ad-radius);
+      background: var(--ad-page);
+    }
+    .ad-filter-search i { color: var(--ad-text-muted); font-size: 16px; }
+    .ad-filter-search input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font: 400 13px var(--ad-font); color: var(--ad-text); }
+    .ad-select {
+      height: 38px;
+      padding: 0 10px;
+      border: 1px solid var(--ad-border);
+      border-radius: var(--ad-radius);
+      background: var(--ad-surface);
+      font: 500 12.5px var(--ad-font);
+      color: var(--ad-text);
+    }
+
+    .ad-table-wrap { overflow-x: auto; }
+    .ad-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .ad-table th { text-align: left; font-size: 11.5px; font-weight: 700; color: var(--ad-text-2); background: var(--ad-page); padding: 10px 12px; white-space: nowrap; }
+    .ad-table td { padding: 11px 12px; border-bottom: 1px solid var(--ad-border); vertical-align: middle; }
+    .ad-table tbody tr:hover { background: #FAFAFE; }
+
+    .ad-cell-user { display: flex; align-items: center; gap: 10px; }
+    .ad-cell-user img, .ad-cell-user .ad-fallback {
+      width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+      background: var(--ad-purple-light); color: var(--ad-purple);
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;
+    }
+    .ad-cell-user strong { display: block; font-size: 13px; color: var(--ad-text); }
+    .ad-cell-user span { font-size: 11.5px; color: var(--ad-text-muted); }
+
+    .ad-badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; white-space: nowrap; background: #EEEEF5; color: #6B6B80; }
+    .ad-badge--success { background: #E9F7EF; color: #1F9254; }
+    .ad-badge--warn { background: #FEF3DC; color: #B7791F; }
+    .ad-badge--danger { background: #FCEDED; color: #D64545; }
+    .ad-badge--purple { background: var(--ad-purple-light); color: var(--ad-purple); }
+
+    .ad-row-actions { position: relative; }
+    .ad-row-actions button { width: 30px; height: 30px; border: none; background: none; border-radius: 8px; cursor: pointer; color: var(--ad-text-2); font-size: 16px; }
+    .ad-row-actions button:hover { background: var(--ad-page); }
+    .ad-row-menu {
+      display: none; position: absolute; top: calc(100% + 4px); right: 0; min-width: 160px; z-index: 20;
+      background: var(--ad-surface); border: 1px solid var(--ad-border); border-radius: var(--ad-radius); padding: 6px;
+      box-shadow: 0 10px 30px -10px rgba(30, 20, 80, 0.25);
+    }
+    .ad-row-menu.is-open { display: block; }
+    .ad-row-menu a, .ad-row-menu button.item {
+      display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; border: none; border-radius: 6px;
+      background: none; font: 500 12.5px var(--ad-font); color: var(--ad-text); text-align: left; cursor: pointer;
+    }
+    .ad-row-menu a:hover, .ad-row-menu button.item:hover { background: var(--ad-page); }
+    .ad-row-menu .is-danger { color: #D64545; }
+    .ad-row-menu .is-danger:hover { background: #FCEDED; }
+
+    .ad-pagination { display: flex; align-items: center; justify-content: space-between; padding: 14px 0 0; font-size: 12.5px; color: var(--ad-text-2); }
+    .ad-pagination__pages { display: flex; gap: 6px; }
+    .ad-pagination__pages button { min-width: 30px; height: 30px; border: 1px solid var(--ad-border); border-radius: 8px; background: var(--ad-surface); font: 600 12px var(--ad-font); color: var(--ad-text); cursor: pointer; }
+    .ad-pagination__pages button.is-current { background: var(--ad-purple); border-color: var(--ad-purple); color: #fff; }
+    .ad-pagination__pages button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .ad-empty { padding: 2.5rem 0; text-align: center; color: var(--ad-text-muted); font-size: 13px; }
+    .ad-skeleton-row td { padding: 14px 12px; }
+    .ad-skeleton { background: linear-gradient(90deg, var(--ad-page) 25%, #ECEBF7 37%, var(--ad-page) 63%); background-size: 400% 100%; animation: ad-shimmer 1.4s ease infinite; border-radius: 6px; height: 14px; }
+    @keyframes ad-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
+    .ad-tabs { display: flex; gap: 6px; }
+    .ad-tab { height: 36px; padding: 0 14px; border: 1px solid var(--ad-border); border-radius: var(--ad-radius); background: var(--ad-surface); font: 600 12.5px var(--ad-font); color: var(--ad-text-2); cursor: pointer; }
+    .ad-tab.is-active { background: var(--ad-purple); border-color: var(--ad-purple); color: #fff; }
+  </style>
+</head>
+
+<body
+  data-page="admin-users"
+  data-title="Users"
+  data-subtitle="Manage all platform users, view details, and take administrative actions."
+  data-icon="ti-users">
+
+  <main id="admin-content">
+    <div class="ad-tabs" id="ad-type-tabs">
+      <button class="ad-tab is-active" data-type="">All</button>
+      <button class="ad-tab" data-type="professional">Professionals</button>
+      <button class="ad-tab" data-type="recruiter">Recruiters</button>
+    </div>
+
+    <div class="ad-filterbar">
+      <label class="ad-filter-search">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <input type="search" id="ad-search" placeholder="Search by name, email, or username..." />
+      </label>
+
+      <select class="ad-select" id="ad-status-filter">
+        <option value="">All Statuses</option>
+        <option value="Active">Active</option>
+        <option value="PendingVerification">Pending Verification</option>
+        <option value="Deactivated">Restricted</option>
+        <option value="Suspended">Suspended</option>
+        <option value="Banned">Banned</option>
+      </select>
+
+      <select class="ad-select" id="ad-page-size">
+        <option value="10">10 / page</option>
+        <option value="25">25 / page</option>
+        <option value="50">50 / page</option>
+      </select>
+    </div>
+
+    <div class="ad-card">
+      <div class="ad-table-wrap">
+        <table class="ad-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Registered</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="ad-users-body">
+            <tr class="ad-skeleton-row"><td colspan="6"><div class="ad-skeleton"></div></td></tr>
+            <tr class="ad-skeleton-row"><td colspan="6"><div class="ad-skeleton"></div></td></tr>
+            <tr class="ad-skeleton-row"><td colspan="6"><div class="ad-skeleton"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ad-pagination" id="ad-pagination"></div>
+    </div>
+  </main>
+
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/adminLayout.js"></script>
+  <script>
+    const state = { type: "", status: "", search: "", pageNumber: 1, pageSize: 10 };
+    let searchDebounce = null;
+
+    function authHeaders() {
+      const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    }
+
+    function esc(v) {
+      return String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    function fmtDate(iso) {
+      if (!iso) return "—";
+      return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    }
+
+    const STATUS_BADGE = {
+      Active: "success",
+      PendingVerification: "warn",
+      Deactivated: "warn",
+      Suspended: "danger",
+      Banned: "danger",
+    };
+
+    const STATUS_LABEL = {
+      Active: "Active",
+      PendingVerification: "Pending Verification",
+      Deactivated: "Restricted",
+      Suspended: "Suspended",
+      Banned: "Banned",
+    };
+
+    function statusBadge(status) {
+      const tone = STATUS_BADGE[status] || "";
+      const label = STATUS_LABEL[status] || status;
+      return `<span class="ad-badge${tone ? ` ad-badge--${tone}` : ""}">${esc(label)}</span>`;
+    }
+
+    // Which actions make sense from each current status.
+    function actionsFor(status) {
+      const actions = [];
+      if (status !== "Active") actions.push({ action: "restore", label: "Restore", icon: "ti-rotate", danger: false });
+      if (status !== "Deactivated") actions.push({ action: "restrict", label: "Restrict", icon: "ti-shield-lock", danger: false });
+      if (status !== "Suspended") actions.push({ action: "suspend", label: "Suspend", icon: "ti-player-pause", danger: false });
+      if (status !== "Banned") actions.push({ action: "ban", label: "Ban User", icon: "ti-ban", danger: true });
+      return actions;
+    }
+
+    async function fetchUsers() {
+      const params = new URLSearchParams();
+      if (state.type) params.set("type", state.type);
+      if (state.status) params.set("status", state.status);
+      if (state.search) params.set("search", state.search);
+      params.set("pageNumber", state.pageNumber);
+      params.set("pageSize", state.pageSize);
+      params.set("usePaging", "true");
+
+      const res = await fetch(`${API_ROUTES.adminUsers}?${params.toString()}`, { headers: authHeaders() });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) throw new Error(body.message || "Failed to load users");
+      return body.data;
+    }
+
+    async function performAction(userId, action) {
+      const reason = prompt(`Reason for this action (optional):`) || null;
+      const res = await fetch(`${API_ROUTES.adminUsers}/${userId}/${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ reason }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) {
+        alert(body.message || "Action failed");
+        return;
+      }
+      load();
+    }
+
+    function renderRows(items) {
+      const tbody = document.getElementById("ad-users-body");
+
+      if (!items || items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="ad-empty">No users match these filters.</div></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = items.map(u => `
+        <tr>
+          <td>
+            <div class="ad-cell-user">
+              ${u.avatarUrl ? `<img src="${esc(u.avatarUrl)}" alt="" />` : `<span class="ad-fallback">${esc((u.name || "?").charAt(0).toUpperCase())}</span>`}
+              <div>
+                <strong>${esc(u.name)}</strong>
+                <span>@${esc(u.userName)}</span>
+              </div>
+            </div>
+          </td>
+          <td>${esc(u.email)}</td>
+          <td><span class="ad-badge ad-badge--purple">${esc(u.type)}</span></td>
+          <td>${statusBadge(u.status)}</td>
+          <td>${fmtDate(u.registeredDate)}</td>
+          <td>
+            <div class="ad-row-actions">
+              <button type="button" class="ad-row-toggle" data-id="${u.userId}" aria-label="Actions"><i class="ti ti-dots-vertical" aria-hidden="true"></i></button>
+              <div class="ad-row-menu" data-menu-for="${u.userId}">
+                <a href="admin-user-details.html?id=${u.userId}"><i class="ti ti-eye" aria-hidden="true"></i> View Details</a>
+                ${actionsFor(u.status).map(a => `
+                  <button type="button" class="item${a.danger ? " is-danger" : ""}" data-action="${a.action}" data-id="${u.userId}">
+                    <i class="ti ${a.icon}" aria-hidden="true"></i> ${a.label}
+                  </button>`).join("")}
+              </div>
+            </div>
+          </td>
+        </tr>`).join("");
+
+      tbody.querySelectorAll(".ad-row-toggle").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const menu = tbody.querySelector(`.ad-row-menu[data-menu-for="${btn.dataset.id}"]`);
+          tbody.querySelectorAll(".ad-row-menu.is-open").forEach(m => { if (m !== menu) m.classList.remove("is-open"); });
+          menu.classList.toggle("is-open");
+        });
+      });
+
+      tbody.querySelectorAll(".ad-row-menu button.item").forEach(btn => {
+        btn.addEventListener("click", () => performAction(btn.dataset.id, btn.dataset.action));
+      });
+    }
+
+    function renderPagination(pageNumber, pageSize, totalCount) {
+      const el = document.getElementById("ad-pagination");
+      const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+      const from = totalCount === 0 ? 0 : (pageNumber - 1) * pageSize + 1;
+      const to = Math.min(pageNumber * pageSize, totalCount);
+
+      const pages = [];
+      for (let p = 1; p <= Math.min(5, totalPages); p++) pages.push(p);
+      if (totalPages > 6) pages.push("…");
+      if (totalPages > 5) pages.push(totalPages);
+
+      el.innerHTML = `
+        <span>Showing ${from.toLocaleString()}–${to.toLocaleString()} of ${totalCount.toLocaleString()}</span>
+        <div class="ad-pagination__pages">
+          <button type="button" data-page="${pageNumber - 1}" ${pageNumber <= 1 ? "disabled" : ""} aria-label="Previous"><i class="ti ti-chevron-left"></i></button>
+          ${pages.map(p => p === "…" ? `<span>…</span>` : `<button type="button" data-page="${p}" class="${p === pageNumber ? "is-current" : ""}">${p}</button>`).join("")}
+          <button type="button" data-page="${pageNumber + 1}" ${pageNumber >= totalPages ? "disabled" : ""} aria-label="Next"><i class="ti ti-chevron-right"></i></button>
+        </div>`;
+
+      el.querySelectorAll("button[data-page]").forEach(btn => {
+        btn.addEventListener("click", () => { state.pageNumber = Number(btn.dataset.page); load(); });
+      });
+    }
+
+    async function load() {
+      const tbody = document.getElementById("ad-users-body");
+      tbody.innerHTML = `
+        <tr class="ad-skeleton-row"><td colspan="6"><div class="ad-skeleton"></div></td></tr>
+        <tr class="ad-skeleton-row"><td colspan="6"><div class="ad-skeleton"></div></td></tr>
+        <tr class="ad-skeleton-row"><td colspan="6"><div class="ad-skeleton"></div></td></tr>`;
+
+      try {
+        const data = await fetchUsers();
+        renderRows(data.items);
+        renderPagination(data.pageNumber, data.pageSize, data.totalCount);
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="ad-empty" style="color:#D64545;">Couldn't load users: ${esc(err.message)}</div></td></tr>`;
+        document.getElementById("ad-pagination").innerHTML = "";
+      }
+    }
+
+    document.getElementById("ad-type-tabs").addEventListener("click", (e) => {
+      const btn = e.target.closest(".ad-tab");
+      if (!btn) return;
+      document.querySelectorAll("#ad-type-tabs .ad-tab").forEach(t => t.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      state.type = btn.dataset.type;
+      state.pageNumber = 1;
+      load();
+    });
+
+    document.getElementById("ad-status-filter").addEventListener("change", (e) => {
+      state.status = e.target.value;
+      state.pageNumber = 1;
+      load();
+    });
+
+    document.getElementById("ad-page-size").addEventListener("change", (e) => {
+      state.pageSize = Number(e.target.value);
+      state.pageNumber = 1;
+      load();
+    });
+
+    document.getElementById("ad-search").addEventListener("input", (e) => {
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => {
+        state.search = e.target.value.trim();
+        state.pageNumber = 1;
+        load();
+      }, 350);
+    });
+
+    document.addEventListener("click", () => {
+      document.querySelectorAll(".ad-row-menu.is-open").forEach(m => m.classList.remove("is-open"));
+    });
+
+    load();
+  </script>
+</body>
+</html>

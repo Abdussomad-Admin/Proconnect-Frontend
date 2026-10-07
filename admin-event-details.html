@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Event Details · ProConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="Styles/admin-layout.css" />
+  <link rel="stylesheet" href="Styles/admin-common.css" />
+</head>
+
+<body data-page="admin-events" data-back-href="admin-events.html" data-back-label="Back to Events">
+  <main id="admin-content">
+    <div id="ad-event-detail">
+      <div class="ad-card"><div class="ad-skeleton" style="height:100px;"></div></div>
+    </div>
+  </main>
+
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/adminLayout.js"></script>
+  <script>
+    function authHeaders() {
+      const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    }
+    function esc(v) { return String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+    function fmtDateTime(iso) { return iso ? new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }) : "—"; }
+    function getEventId() { return new URLSearchParams(location.search).get("id"); }
+
+    const STATUS_BADGE = { Draft: "", Published: "success", Cancelled: "danger", Completed: "info" };
+    function statusBadge(status) {
+      const tone = STATUS_BADGE[status] ?? "";
+      return `<span class="ad-badge${tone ? ` ad-badge--${tone}` : ""}">${esc(status)}</span>`;
+    }
+    function actionsFor(status) {
+      const actions = [];
+      if (status === "Draft") actions.push({ action: "publish", label: "Publish Event", icon: "ti-circle-check", kind: "primary" });
+      if (status !== "Cancelled" && status !== "Completed") actions.push({ action: "cancel", label: "Cancel Event", icon: "ti-x", kind: "danger" });
+      return actions;
+    }
+
+    async function fetchEvent(id) {
+      const res = await fetch(`${API_ROUTES.adminEvents}/${id}`, { headers: authHeaders() });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) throw new Error(body.message || "Failed to load event");
+      return body.data;
+    }
+
+    async function performAction(eventId, action) {
+      const reason = prompt("Reason / note (optional):") || null;
+      const res = await fetch(`${API_ROUTES.adminEvents}/${eventId}/${action}`, {
+        method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ reason }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) { alert(body.message || "Action failed"); return; }
+      render(await fetchEvent(getEventId()));
+    }
+
+    function render(e) {
+      const el = document.getElementById("ad-event-detail");
+
+      const cancelNote = e.status === "Cancelled" && e.cancellationReason
+        ? `<div class="ad-card" style="border-color:#F3C4C4; background:#FCEDED;"><strong style="color:#D64545;">Cancelled:</strong> <span style="color:var(--ad-text-2);">${esc(e.cancellationReason)}</span></div>`
+        : "";
+
+      el.innerHTML = `
+        <div class="ad-card">
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+            <h2 style="margin:0; font-size:19px; color:var(--ad-heading);">${esc(e.title)}</h2>
+            ${statusBadge(e.status)}
+          </div>
+          <div class="ad-detail-banner__sub" style="margin-top:6px;">${esc(e.companyName)} &middot; Hosted by ${esc(e.postedByRecruiter)}</div>
+          <div class="ad-detail-banner__meta" style="margin-top:10px;">
+            <span><i class="ti ti-calendar"></i>${fmtDateTime(e.startDateTime)} – ${fmtDateTime(e.endDateTime)}</span>
+            <span><i class="ti ti-map-pin"></i>${esc(e.locationType)}${e.location ? ` &middot; ${esc(e.location)}` : ""}</span>
+            ${e.category ? `<span><i class="ti ti-tag"></i>${esc(e.category)}</span>` : ""}
+          </div>
+        </div>
+
+        ${cancelNote}
+
+        <div class="ad-detail-split">
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div class="ad-card">
+              <h3 style="margin:0 0 8px; font-size:15px; color:var(--ad-heading);">Description</h3>
+              <p style="margin:0; font-size:13px; color:var(--ad-text-2); line-height:1.6; white-space:pre-wrap;">${esc(e.description)}</p>
+            </div>
+
+            <div class="ad-card">
+              <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Event Information</h3>
+              <dl class="ad-field-grid">
+                <div><dt>Event Type</dt><dd>${esc(e.eventType)}</dd></div>
+                <div><dt>Visibility</dt><dd>${esc(e.visibility)}</dd></div>
+                <div><dt>Registration Type</dt><dd>${esc(e.registrationType)}</dd></div>
+                <div><dt>Attendee Limit</dt><dd>${e.attendeeLimit ?? "No limit"}</dd></div>
+                ${e.onlineMeetingLink ? `<div><dt>Meeting Link</dt><dd><a href="${esc(e.onlineMeetingLink)}" target="_blank" rel="noopener" style="color:var(--ad-purple);">${esc(e.onlineMeetingLink)}</a></dd></div>` : ""}
+                <div><dt>Created</dt><dd>${fmtDateTime(e.createdDate)}</dd></div>
+              </dl>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div class="ad-card">
+              <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Administrative Actions</h3>
+              <div id="ad-action-buttons"></div>
+            </div>
+
+            <div class="ad-card">
+              <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Quick Stats</h3>
+              <div class="ad-stat-mini-grid">
+                <div class="ad-stat-mini"><strong>${e.registeredCount}</strong><span>Registered</span></div>
+                <div class="ad-stat-mini"><strong>${e.speakersCount}</strong><span>Speakers</span></div>
+                <div class="ad-stat-mini" style="grid-column:1 / -1;"><strong>${e.agendaItemsCount}</strong><span>Agenda Items</span></div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+
+      const btnWrap = document.getElementById("ad-action-buttons");
+      const actions = actionsFor(e.status);
+      btnWrap.innerHTML = actions.length
+        ? actions.map(a => `
+            <button type="button" class="ad-action-btn${a.kind === "primary" ? " ad-action-btn--primary" : a.kind === "danger" ? " ad-action-btn--danger" : ""}" data-action="${a.action}">
+              <i class="ti ${a.icon}" aria-hidden="true"></i> ${a.label}
+            </button>`).join("")
+        : `<div class="ad-empty">No further actions available.</div>`;
+      btnWrap.querySelectorAll("button[data-action]").forEach(btn => btn.addEventListener("click", () => performAction(e.eventId, btn.dataset.action)));
+    }
+
+    async function init() {
+      const id = getEventId();
+      if (!id) { document.getElementById("ad-event-detail").innerHTML = `<div class="ad-card"><div class="ad-empty">No event id given in the URL.</div></div>`; return; }
+      try {
+        render(await fetchEvent(id));
+      } catch (err) {
+        document.getElementById("ad-event-detail").innerHTML = `<div class="ad-card"><div class="ad-empty" style="color:#D64545;">Couldn't load event: ${esc(err.message)}</div></div>`;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

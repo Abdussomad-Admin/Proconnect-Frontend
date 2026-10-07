@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interviews · ProConnect</title>
+  <link rel="stylesheet" href="Styles/dashboard.css" />
+  <link rel="stylesheet" href="Styles/interviews.css" />
+  <link rel="stylesheet" href="Styles/toast.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.44.0/tabler-icons.min.css" />
+</head>
+<body data-page="interviews">
+
+  <div class="app-shell">
+
+    <div id="sidebar-root"></div>
+
+    <main class="app-main">
+
+      <header class="app-topbar">
+        <div class="app-search">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input type="text" placeholder="Search jobs, candidates, people, or companies..." />
+        </div>
+
+        <div class="app-topbar__icons">
+          <div class="topbar-user" id="topbar-user-toggle">
+            <img id="topbar-avatar" hidden alt="" />
+            <span id="topbar-name">—</span>
+            <i class="ti ti-chevron-down" aria-hidden="true"></i>
+          </div>
+
+          <div class="dropdown-menu" id="topbar-dropdown">
+            <a href="recruiter-profile.html" class="dropdown-menu__item"><i class="ti ti-user" aria-hidden="true"></i> View Profile</a>
+            <a href="#" class="dropdown-menu__item"><i class="ti ti-settings" aria-hidden="true"></i> Settings</a>
+            <button type="button" class="dropdown-menu__item dropdown-menu__item--danger" id="topbar-logout"><i class="ti ti-logout" aria-hidden="true"></i> Log out</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="app-content">
+
+        <div class="iv-header">
+          <div class="iv-header__title-row">
+            <span class="iv-header__icon"><i class="ti ti-calendar-event" aria-hidden="true"></i></span>
+            <div>
+              <h1 class="iv-title">Interviews</h1>
+              <p class="iv-subtitle">Manage and track all your scheduled interviews.</p>
+            </div>
+          </div>
+          <a href="applications.html" class="btn-primary btn-compact">
+            <i class="ti ti-plus" aria-hidden="true"></i> Schedule Interview
+          </a>
+        </div>
+
+        <div class="jm-loading" id="page-loading">
+          <span class="spinner spinner--dark"></span>
+          <span>Loading interviews...</span>
+        </div>
+
+        <div id="page-content" hidden>
+
+          <div class="iv-stats-grid">
+            <div class="card iv-stat-card">
+              <span class="iv-stat-card__icon iv-stat-card__icon--purple"><i class="ti ti-calendar-event" aria-hidden="true"></i></span>
+              <div>
+                <div class="iv-stat-card__label">Total Interviews</div>
+                <div class="iv-stat-card__value-row">
+                  <span class="iv-stat-card__value" id="stat-total">0</span>
+                  <span class="iv-trend" id="stat-total-trend" hidden></span>
+                </div>
+                <div class="iv-stat-card__sub">all time</div>
+              </div>
+            </div>
+            <div class="card iv-stat-card">
+              <span class="iv-stat-card__icon iv-stat-card__icon--blue"><i class="ti ti-clock" aria-hidden="true"></i></span>
+              <div>
+                <div class="iv-stat-card__label">Upcoming</div>
+                <span class="iv-stat-card__value" id="stat-upcoming">0</span>
+                <div class="iv-stat-card__sub" id="stat-due-soon">—</div>
+              </div>
+            </div>
+            <div class="card iv-stat-card">
+              <span class="iv-stat-card__icon iv-stat-card__icon--gray"><i class="ti ti-history" aria-hidden="true"></i></span>
+              <div>
+                <div class="iv-stat-card__label">Past</div>
+                <span class="iv-stat-card__value" id="stat-past">0</span>
+                <div class="iv-stat-card__sub">date has passed</div>
+              </div>
+            </div>
+            <div class="card iv-stat-card">
+              <span class="iv-stat-card__icon iv-stat-card__icon--red"><i class="ti ti-circle-x" aria-hidden="true"></i></span>
+              <div>
+                <div class="iv-stat-card__label">Rejected After Scheduling</div>
+                <span class="iv-stat-card__value" id="stat-rejected">0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card iv-table-card">
+
+            <h3 class="iv-table-card__title" id="results-title">Interviews</h3>
+
+            <div class="iv-toolbar">
+              <div class="app-search iv-search">
+                <i class="ti ti-search" aria-hidden="true"></i>
+                <input type="text" id="search-input" placeholder="Search by candidate name, job title..." />
+              </div>
+              <select id="status-filter" class="iv-select">
+                <option value="">All Statuses</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="past">Past</option>
+                <option value="rejected">Rejected after scheduling</option>
+              </select>
+              <select id="job-filter" class="iv-select">
+                <option value="">All Jobs</option>
+              </select>
+              <div class="iv-daterange-wrap">
+                <button type="button" class="iv-daterange-btn" id="daterange-toggle">
+                  <i class="ti ti-calendar" aria-hidden="true"></i>
+                  <span id="daterange-label">Select Date Range</span>
+                </button>
+                <div class="iv-daterange-popover" id="daterange-popover" hidden>
+                  <label for="date-from">From</label>
+                  <input type="date" id="date-from" />
+                  <label for="date-to">To</label>
+                  <input type="date" id="date-to" />
+                  <div class="iv-daterange-popover__actions">
+                    <button type="button" class="link-btn" id="daterange-clear">Clear</button>
+                    <button type="button" class="btn-primary btn-compact" id="daterange-apply">Apply</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="jm-empty" id="table-empty" hidden>
+              <i class="ti ti-calendar-off" aria-hidden="true"></i>
+              <p><strong>No interviews match your filters.</strong></p>
+            </div>
+
+            <div class="jm-empty" id="table-empty-none" hidden>
+              <i class="ti ti-calendar-off" aria-hidden="true"></i>
+              <p><strong>No interviews scheduled yet.</strong></p>
+              <p class="jm-placeholder__sub">Schedule one from a candidate's application to see it here.</p>
+              <a href="applications.html" class="btn-primary btn-compact">Go to Applications</a>
+            </div>
+
+            <div class="iv-table-wrap" id="table-wrap" hidden>
+              <table class="jm-table">
+                <thead>
+                  <tr>
+                    <th class="iv-checkbox-col"><input type="checkbox" id="select-all-checkbox" /></th>
+                    <th>Candidate</th>
+                    <th>Job Title</th>
+                    <th>Interview Type</th>
+                    <th>Date &amp; Time</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+              </table>
+            </div>
+
+            <div class="iv-pagination-row" id="pagination-row" hidden>
+              <span id="showing-info"></span>
+              <div class="sj-pagination" id="pagination"></div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- ---------- Detail panel ---------- -->
+    <aside class="ap-detail-panel" id="detail-panel" hidden>
+      <div class="ap-detail-panel__header">
+        <button type="button" class="ap-detail-panel__close" id="detail-close"><i class="ti ti-x" aria-hidden="true"></i></button>
+      </div>
+      <div class="ap-detail-panel__body" id="detail-body"></div>
+    </aside>
+
+  </div>
+
+  <!-- ---------- Reject confirm modal ---------- -->
+  <div class="jm-modal-overlay" id="reject-overlay" hidden>
+    <div class="jm-modal">
+      <h3>Reject this candidate?</h3>
+      <p>This moves their application status to Rejected. This can't be undone from here.</p>
+      <div class="jm-modal__actions">
+        <button type="button" class="btn-outline btn-compact" id="reject-cancel">Cancel</button>
+        <button type="button" class="btn-primary ej-danger-btn-solid btn-compact" id="reject-confirm">Reject</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="Scripts/sidebar.js"></script>
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/toast.js"></script>
+  <script src="Scripts/interviews.js"></script>
+</body>
+</html>

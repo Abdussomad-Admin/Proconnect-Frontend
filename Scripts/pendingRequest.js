@@ -55,19 +55,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${Math.floor(months / 12)}y ago`;
   }
 
-  function showToast(message, type = "info") {
-    const stack = document.getElementById("toast-stack");
-    if (!stack) return;
-
-    const icon = type === "success" ? "ti-circle-check" : type === "error" ? "ti-alert-circle" : "ti-info-circle";
-
-    const toast = document.createElement("div");
-    toast.className = `toast toast--${type}`;
-    toast.innerHTML = `<i class="ti ${icon}" aria-hidden="true"></i><span>${escapeHtml(message)}</span>`;
-    stack.appendChild(toast);
-
-    setTimeout(() => toast.remove(), 4000);
-  }
+  // NOTE: showToast is now the global one from Scripts/toast.js (loaded via
+  // a <script> tag on this page) — the local duplicate that used to live
+  // here (rendering into a #toast-stack div) has been removed. Its default
+  // type ("info") already matched the global default.
 
   async function apiGet(url) {
     const response = await fetch(url, { method: "GET", headers: authHeaders });

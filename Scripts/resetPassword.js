@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("reset-form");
-  const alertBox = document.getElementById("form-alert");
   const btnReset = document.getElementById("btn-reset");
   const resetLabel = document.getElementById("reset-label");
   const btnResend = document.getElementById("btn-resend");
@@ -22,14 +21,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------------- Helpers ----------------
 
-  function hideAlert() {
-    alertBox.hidden = true;
-    alertBox.textContent = "";
-  }
+  // No-op now — toasts auto-dismiss themselves, so there's no persistent
+  // alert box left to hide.
+  function hideAlert() {}
 
+  // Routes to the global toast (Scripts/toast.js) instead of the old
+  // #form-alert div; call sites are unchanged.
   function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
+    showToast(message, "error");
   }
 
   function clearFieldError(id) {
@@ -192,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(result.message || "Couldn't resend the code. Please try again.");
       }
 
-      showAlert("A new code has been sent if this email is registered.");
+      showToast("A new code has been sent if this email is registered.", "success");
       startCooldown(60);
     } catch (err) {
       showAlert(err.message);

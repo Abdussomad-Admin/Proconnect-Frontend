@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const alertBox = document.getElementById("form-alert");
   let dashboardData = null;
   let postAnalyticsData = null;
   let postImpressionsData = null;
@@ -23,9 +22,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   let companySizeChart = null;
   const loadedTabs = new Set();
 
+  // Routes to the global toast (Scripts/toast.js) instead of the old
+  // #form-alert div; call sites are unchanged.
   function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
+    showToast(message, "error");
   }
 
   function escapeHtml(str) {

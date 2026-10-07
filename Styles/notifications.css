@@ -1,15 +1,25 @@
-/* ==========================================================================
-   notifications.html — page-specific styles.
-   Base variables, shell, and generic card/button classes come from
-   Styles/dashboard.css — include that file BEFORE this one.
-   Reuses .ma-* classes (status tabs, layout grid, sidebar) from
-   my-applications.css conventions where the shape matches exactly.
-   ========================================================================== */
 
-.nf-header {
+
+.nf-header,
+.ma-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.nf-title,
+.ma-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.nf-subtitle,
+.ma-subtitle {
+  font-size: 13px;
+  color: var(--pc-text-secondary);
+  margin: 0;
 }
 
 .nf-header__actions {
@@ -17,11 +27,111 @@
   gap: 8px;
 }
 
-.nf-layout {
+/* ---------- Status tabs (All / Unread) ---------- */
+
+.nf-status-tabs,
+.ma-status-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.nf-status-tab,
+.ma-status-tab {
+  border: 1px solid var(--pc-border);
+  background: var(--pc-surface);
+  font-family: var(--pc-font);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--pc-text-secondary);
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.nf-status-tab:hover,
+.ma-status-tab:hover {
+  border-color: var(--pc-purple);
+  color: var(--pc-purple);
+}
+
+.nf-status-tab.is-active,
+.ma-status-tab.is-active {
+  background: var(--pc-purple);
+  border-color: var(--pc-purple);
+  color: #fff;
+}
+
+/* ---------- Layout ---------- */
+
+.nf-layout,
+.ma-layout {
   display: grid;
   grid-template-columns: 1fr 280px;
   gap: 1.25rem;
   align-items: start;
+}
+
+.nf-main,
+.ma-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.nf-sidebar,
+.ma-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  position: sticky;
+  top: calc(var(--pc-topbar-height, 68px) + 1.25rem);
+}
+
+.nf-sidebar-title,
+.ma-sidebar-title {
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+
+/* ---------- Loading / empty states ---------- */
+
+.nf-loading,
+.jm-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--pc-text-secondary);
+  font-size: 13.5px;
+  padding: 3rem 0;
+}
+
+.nf-empty,
+.jm-empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+}
+
+.nf-empty i,
+.jm-empty i {
+  font-size: 34px;
+  color: var(--pc-text-muted);
+  margin-bottom: 10px;
+  display: block;
+}
+
+.nf-empty p,
+.jm-empty p {
+  margin: 4px 0 14px;
+  font-size: 13.5px;
+  color: var(--pc-text-secondary);
+}
+
+.nf-empty__sub,
+.jm-placeholder__sub {
+  font-size: 12.5px;
+  color: var(--pc-text-muted);
 }
 
 /* ---------- Day group headers ---------- */
@@ -245,8 +355,35 @@
   cursor: pointer;
 }
 
+/* ---------- Responsive ---------- */
+
 @media (max-width: 1050px) {
-  .nf-layout {
+  .nf-layout,
+  .ma-layout {
     grid-template-columns: 1fr;
+  }
+
+  .nf-sidebar,
+  .ma-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .nf-header,
+  .ma-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .nf-row {
+    flex-wrap: wrap;
+  }
+
+  .nf-row__actions {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 52px;
   }
 }

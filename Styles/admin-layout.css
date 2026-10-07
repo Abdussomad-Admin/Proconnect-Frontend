@@ -1,0 +1,460 @@
+/* ProConnect Admin — standalone layout. Does not depend on styles.css. */
+
+:root {
+  --ad-purple: #5B3FE0;
+  --ad-purple-2: #7048F2;
+  --ad-purple-light: #EFEBFC;
+  --ad-navy: #0B1030;
+  --ad-navy-2: #0F1640;
+  --ad-page: #F5F4FB;
+  --ad-surface: #FFFFFF;
+  --ad-border: #E4E3EF;
+  --ad-text: #1A1A2E;
+  --ad-text-2: #6B6B80;
+  --ad-text-muted: #9A9AAE;
+  --ad-heading: #1B1B5E;
+  --ad-side-text: rgba(255, 255, 255, 0.72);
+  --ad-side-muted: rgba(255, 255, 255, 0.42);
+  --ad-side-hover: rgba(255, 255, 255, 0.07);
+  --ad-side-line: rgba(255, 255, 255, 0.1);
+  --ad-radius: 10px;
+  --ad-radius-lg: 16px;
+  --ad-sidebar-w: 240px;
+  --ad-sidebar-w-collapsed: 76px;
+  --ad-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  font-family: var(--ad-font);
+  background: var(--ad-page);
+  color: var(--ad-text);
+}
+
+a { text-decoration: none; color: inherit; }
+button { font-family: inherit; }
+
+button:focus-visible, a:focus-visible, input:focus-visible {
+  outline: 2px solid var(--ad-purple);
+  outline-offset: 2px;
+}
+
+/* ---------- Shell ---------- */
+
+.ad-shell {
+  display: grid;
+  grid-template-columns: var(--ad-sidebar-w) minmax(0, 1fr);
+  min-height: 100vh;
+  transition: grid-template-columns 0.18s ease;
+}
+
+body.ad-collapsed .ad-shell {
+  grid-template-columns: var(--ad-sidebar-w-collapsed) minmax(0, 1fr);
+}
+
+/* ---------- Sidebar ---------- */
+
+.ad-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 0.9rem;
+  background: linear-gradient(180deg, var(--ad-navy) 0%, var(--ad-navy-2) 100%);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+  z-index: 40;
+}
+
+.ad-sidebar::-webkit-scrollbar { width: 3px; }
+.ad-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.25); border-radius: 999px; }
+
+.ad-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 0.5rem;
+  margin-bottom: 1.5rem;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ad-brand__mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--ad-purple), var(--ad-purple-2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  flex-shrink: 0;
+}
+
+.ad-nav { flex: 1; }
+
+.ad-nav__section { margin-bottom: 1rem; }
+
+.ad-nav__label {
+  padding: 0 0.75rem;
+  margin-bottom: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ad-side-muted);
+}
+
+.ad-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 2px;
+  border-radius: var(--ad-radius);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ad-side-text);
+  white-space: nowrap;
+}
+
+.ad-link i { font-size: 18px; flex-shrink: 0; }
+.ad-link:hover { background: var(--ad-side-hover); color: #fff; }
+
+.ad-link.is-active {
+  background: linear-gradient(90deg, var(--ad-purple), var(--ad-purple-2));
+  color: #fff;
+  box-shadow: 0 6px 16px -8px rgba(91, 63, 224, 0.9);
+}
+
+.ad-link__badge {
+  margin-left: auto;
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.ad-sidebar__footer {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--ad-side-line);
+}
+
+.ad-panel-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--ad-radius);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ad-panel-card small {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ad-side-muted);
+}
+
+.ad-collapse {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 9px 12px;
+  border: none;
+  border-radius: var(--ad-radius);
+  background: none;
+  color: var(--ad-side-text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.ad-collapse:hover { background: var(--ad-side-hover); color: #fff; }
+.ad-collapse i { font-size: 18px; }
+
+.ad-copy {
+  margin: 12px 4px 0;
+  font-size: 10.5px;
+  color: var(--ad-side-muted);
+}
+
+/* Collapsed rail */
+body.ad-collapsed .ad-sidebar { padding-left: 0.6rem; padding-right: 0.6rem; }
+body.ad-collapsed .ad-brand { justify-content: center; padding: 0; }
+body.ad-collapsed .ad-brand__name,
+body.ad-collapsed .ad-nav__label,
+body.ad-collapsed .ad-link__text,
+body.ad-collapsed .ad-panel-card__text,
+body.ad-collapsed .ad-collapse__text,
+body.ad-collapsed .ad-copy { display: none; }
+body.ad-collapsed .ad-link { justify-content: center; padding: 10px 0; }
+body.ad-collapsed .ad-link__badge { position: absolute; top: 4px; right: 10px; min-width: 8px; height: 8px; padding: 0; font-size: 0; }
+body.ad-collapsed .ad-panel-card,
+body.ad-collapsed .ad-collapse { justify-content: center; padding-left: 0; padding-right: 0; }
+
+/* ---------- Topbar ---------- */
+
+.ad-main { display: flex; flex-direction: column; min-width: 0; }
+
+.ad-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 68px;
+  padding: 0 2rem;
+  background: var(--ad-surface);
+  border-bottom: 1px solid var(--ad-border);
+}
+
+.ad-icon-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--ad-radius);
+  background: none;
+  color: var(--ad-text-2);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.ad-icon-btn:hover { background: var(--ad-page); color: var(--ad-text); }
+
+.ad-icon-btn__badge {
+  position: absolute;
+  top: 3px;
+  right: 2px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--ad-purple);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ad-search {
+  flex: 1;
+  max-width: 560px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--ad-border);
+  border-radius: var(--ad-radius);
+  background: var(--ad-page);
+}
+
+.ad-search i { color: var(--ad-text-muted); font-size: 17px; }
+
+.ad-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: 400 13.5px var(--ad-font);
+  color: var(--ad-text);
+}
+
+.ad-kbd {
+  padding: 2px 7px;
+  border: 1px solid var(--ad-border);
+  border-radius: 6px;
+  background: var(--ad-surface);
+  font-size: 11px;
+  color: var(--ad-text-2);
+}
+
+.ad-topbar__right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ad-user-wrap { position: relative; margin-left: 10px; }
+
+.ad-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: var(--ad-radius);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ad-user:hover { background: var(--ad-page); }
+
+.ad-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--ad-purple-light);
+  color: var(--ad-purple);
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ad-user__name { display: block; font-size: 13px; font-weight: 600; color: var(--ad-text); }
+.ad-user__role { display: block; font-size: 11px; color: var(--ad-text-muted); }
+.ad-user > i { font-size: 14px; color: var(--ad-text-muted); }
+
+.ad-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 190px;
+  padding: 6px;
+  border: 1px solid var(--ad-border);
+  border-radius: var(--ad-radius);
+  background: var(--ad-surface);
+  box-shadow: 0 10px 30px -10px rgba(30, 20, 80, 0.25);
+}
+
+.ad-menu a, .ad-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  font: 500 13px var(--ad-font);
+  color: var(--ad-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ad-menu a:hover, .ad-menu button:hover { background: var(--ad-page); }
+.ad-menu .is-danger { color: #D64545; }
+.ad-menu .is-danger:hover { background: #FCEDED; }
+
+/* ---------- Page content ---------- */
+
+.ad-content {
+  padding: 1.5rem 2rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.ad-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ad-purple);
+}
+
+.ad-page-header { display: flex; align-items: flex-start; gap: 14px; }
+
+.ad-page-header__icon {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: var(--ad-purple-light);
+  color: var(--ad-purple);
+  font-size: 26px;
+}
+
+.ad-page-header h1 { margin: 0; font-size: 26px; line-height: 1.2; color: var(--ad-heading); }
+.ad-page-header p { margin: 4px 0 0; font-size: 13.5px; color: var(--ad-text-2); }
+.ad-page-header__actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+.ad-card {
+  background: var(--ad-surface);
+  border: 1px solid var(--ad-border);
+  border-radius: var(--ad-radius-lg);
+  padding: 1.25rem 1.5rem;
+}
+
+/* adminLayout.js appends each page's <main id="admin-content"> as a single
+   flex item inside .ad-content, so .ad-content's own gap only separates
+   the header from the whole page — never the sections within it. This
+   rule gives every page's top-level sections that same spacing. */
+#admin-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ---------- Mobile: sidebar becomes an off-canvas drawer ---------- */
+
+.ad-overlay { display: none; }
+
+@media (max-width: 960px) {
+  .ad-shell,
+  body.ad-collapsed .ad-shell { grid-template-columns: 1fr; }
+
+  .ad-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: var(--ad-sidebar-w);
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+
+  body.ad-drawer-open .ad-sidebar { transform: translateX(0); }
+
+  body.ad-drawer-open .ad-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 16, 48, 0.5);
+    z-index: 35;
+  }
+
+  .ad-topbar { padding: 0 1rem; }
+  .ad-content { padding: 1.25rem 1rem 2.5rem; }
+  .ad-user__text { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ad-shell, .ad-sidebar { transition: none; }
+}

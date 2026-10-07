@@ -418,7 +418,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("company-founded").textContent = c.foundedYear ? `Founded ${c.foundedYear}` : "—";
     document.getElementById("company-desc").textContent = c.description;
-    document.getElementById("view-company-btn").href = `company-profile-public.html?companyId=${myProfile.companyId}`;
+    document.getElementById("view-company-btn").href = `company-public-profile.html?companyId=${myProfile.companyId}`;
   }
 
   // ---------------- Init ----------------

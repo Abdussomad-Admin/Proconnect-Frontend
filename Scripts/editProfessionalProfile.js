@@ -11,6 +11,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  // const profilePro = document.getElementById("profile-edit-professional");
+  // profilePro.href = `profile.html?${profileId}`;
+
   let currentProfile = null;
   let allSkills = []; // [{id, name}] — fetched once, filtered client-side
 

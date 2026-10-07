@@ -13,6 +13,14 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentPage = 1;
   const pageSize = 10;
   let lastLoadedJobs = [];
+  let overviewLoaded = false;
+
+  // Tabs that have their own dedicated destination instead of an in-page panel.
+  const TAB_REDIRECTS = {
+    candidates: "candidates.html",
+    interviews: "applications.html?status=Interview",
+    offers: "applications.html?status=Offered",
+  };
 
   // ---------------- Helpers ----------------
 
@@ -31,6 +39,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function formatDate(dateStr) {
     if (!dateStr) return "—";
     return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }
+
+  function formatDateTime(dateStr) {
+    if (!dateStr) return "—";
+    return new Date(dateStr).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
   }
 
   function statusBadge(status) {
@@ -52,29 +65,145 @@ document.addEventListener("DOMContentLoaded", () => {
     return map[type] || type;
   }
 
+  function initials(name) {
+    const parts = (name || "").trim().split(/\s+/);
+    return `${(parts[0] || "").charAt(0)}${(parts[1] || "").charAt(0)}`.toUpperCase() || "?";
+  }
+
   // ---------------- Top-level tab switching ----------------
+
+  function activateTab(tabName) {
+    document.querySelectorAll(".jm-tab").forEach((t) => t.classList.toggle("is-active", t.dataset.tab === tabName));
+    document.querySelectorAll(".jm-panel").forEach((p) => (p.hidden = true));
+    const panel = document.getElementById(`panel-${tabName}`);
+    if (panel) panel.hidden = false;
+
+    if (tabName === "overview" && !overviewLoaded) loadOverview();
+    if (tabName === "my-job-posts" && lastLoadedJobs.length === 0) loadJobs();
+  }
 
   document.querySelectorAll(".jm-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
-      // Candidates now has a real page — send the user there instead of
-      // showing the in-dashboard placeholder.
-      if (tab.dataset.tab === "candidates") {
-        window.location.href = "candidates.html";
+      const redirect = TAB_REDIRECTS[tab.dataset.tab];
+      if (redirect) {
+        window.location.href = redirect;
+        return;
+      }
+      activateTab(tab.dataset.tab);
+    });
+  });
+
+  // "View all job posts" style links inside the Overview panel
+  document.querySelectorAll("[data-goto-tab]").forEach((btn) => {
+    btn.addEventListener("click", () => activateTab(btn.dataset.gotoTab));
+  });
+
+  document.getElementById("view-all-interviews-btn").addEventListener("click", () => {
+    window.location.href = TAB_REDIRECTS.interviews;
+  });
+
+  // ---------------- Overview (real data) ----------------
+
+  async function loadOverview() {
+    const loadingEl = document.getElementById("overview-loading");
+    const contentEl = document.getElementById("overview-content");
+
+    loadingEl.hidden = false;
+    contentEl.hidden = true;
+
+    try {
+      const params = new URLSearchParams({ recruiterProfileId });
+      const response = await fetch(`${API_ROUTES.getJobManagementOverview}?${params.toString()}`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (response.status === 401) {
+        window.location.href = "login.html?reason=session-expired";
         return;
       }
 
-      document.querySelectorAll(".jm-tab").forEach((t) => t.classList.remove("is-active"));
-      tab.classList.add("is-active");
+      loadingEl.hidden = true;
 
-      document.querySelectorAll(".jm-panel").forEach((p) => (p.hidden = true));
-      const panel = document.getElementById(`panel-${tab.dataset.tab}`);
-      if (panel) panel.hidden = false;
-
-      if (tab.dataset.tab === "my-job-posts" && lastLoadedJobs.length === 0) {
-        loadJobs();
+      if (!response.ok || !result.data) {
+        showAlert(result.message || "Couldn't load your overview.");
+        return;
       }
-    });
-  });
+
+      const o = result.data;
+      overviewLoaded = true;
+
+      document.getElementById("stat-active-jobs").textContent = o.activeJobPostCount;
+      document.getElementById("stat-total-applications").textContent = o.totalApplicationCount;
+      document.getElementById("stat-under-review").textContent = o.underReviewCount;
+      document.getElementById("stat-interviews").textContent = o.interviewsScheduledCount;
+      document.getElementById("stat-offers").textContent = o.offersExtendedCount;
+
+      renderRecentJobs(o.recentJobPosts || []);
+      renderUpcomingInterviews(o.upcomingInterviews || []);
+
+      contentEl.hidden = false;
+
+    } catch (err) {
+      loadingEl.hidden = true;
+      console.error("Overview fetch threw an error:", err);
+      showAlert("Couldn't reach the server. Check your connection and try again.");
+    }
+  }
+
+  function renderRecentJobs(jobs) {
+    const listEl = document.getElementById("recent-jobs-list");
+    const emptyEl = document.getElementById("recent-jobs-empty");
+
+    if (jobs.length === 0) {
+      listEl.innerHTML = "";
+      emptyEl.hidden = false;
+      return;
+    }
+
+    emptyEl.hidden = true;
+    listEl.innerHTML = jobs.map((j) => `
+      <div class="jm-recent-job-row">
+        <span class="jm-recent-job-row__icon"><i class="ti ti-briefcase" aria-hidden="true"></i></span>
+        <div>
+          <p class="jm-recent-job-row__title">${escapeHtml(j.title)}</p>
+          <span class="jm-recent-job-row__meta">${statusBadge(j.status)} · Posted ${formatDate(j.dateCreated)}</span>
+        </div>
+        <div class="jm-recent-job-row__stats">
+          <div><strong>${j.applicationCount}</strong><span>Applicants</span></div>
+          <div><strong>${j.underReviewCount}</strong><span>Review</span></div>
+          <div><strong>${j.interviewCount}</strong><span>Interviews</span></div>
+          <div><strong>${j.offerCount}</strong><span>Offers</span></div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function renderUpcomingInterviews(interviews) {
+    const listEl = document.getElementById("upcoming-interviews-list");
+    const emptyEl = document.getElementById("upcoming-interviews-empty");
+
+    if (interviews.length === 0) {
+      listEl.innerHTML = "";
+      emptyEl.hidden = false;
+      return;
+    }
+
+    emptyEl.hidden = true;
+    listEl.innerHTML = interviews.map((i) => `
+      <div class="jm-interview-row">
+        <span class="jm-interview-row__avatar">
+          ${i.candidateAvatarUrl ? `<img src="${escapeHtml(i.candidateAvatarUrl)}" alt="" />` : initials(i.candidateName)}
+        </span>
+        <div>
+          <p class="jm-interview-row__name">${escapeHtml(i.candidateName)}</p>
+          <span class="jm-interview-row__meta">${escapeHtml(i.jobTitle)}${i.interviewType ? ` · ${escapeHtml(i.interviewType)}` : ""}</span>
+        </div>
+        <div class="jm-interview-row__when">${formatDateTime(i.interviewScheduledAt)}</div>
+      </div>
+    `).join("");
+  }
 
   // ---------------- Status sub-tabs ----------------
 
@@ -280,6 +409,7 @@ document.addEventListener("DOMContentLoaded", () => {
       overlay.hidden = true;
       showAlert(pendingAction === "close" ? "Job closed." : "Job deleted.", true);
       loadJobs();
+      overviewLoaded = false; // stats changed — refresh next time Overview is opened
 
     } catch (err) {
       console.error(`${pendingAction} job failed:`, err);
@@ -294,5 +424,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------------- Init ----------------
 
-  loadJobs();
+  loadOverview();
 });

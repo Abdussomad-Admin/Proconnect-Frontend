@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Job Details · ProConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="Styles/admin-layout.css" />
+  <link rel="stylesheet" href="Styles/admin-common.css" />
+</head>
+
+<body data-page="admin-jobs" data-back-href="admin-jobs.html" data-back-label="Back to Jobs">
+  <main id="admin-content">
+    <div id="ad-job-detail">
+      <div class="ad-card"><div class="ad-skeleton" style="height:100px;"></div></div>
+    </div>
+  </main>
+
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/adminLayout.js"></script>
+  <script>
+    function authHeaders() {
+      const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    }
+    function esc(v) { return String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+    function fmtDate(iso) { return iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"; }
+    function fmtSalary(min, max, currency) {
+      const f = (n) => Number(n).toLocaleString();
+      return `${esc(currency)} ${f(min)} – ${f(max)}`;
+    }
+    function getJobId() { return new URLSearchParams(location.search).get("id"); }
+
+    const STATUS_BADGE = { Active: "success", PendingApproval: "warn", Scheduled: "info", Draft: "", Closed: "danger" };
+    const STATUS_LABEL = { Active: "Active", PendingApproval: "Pending Approval", Scheduled: "Scheduled", Draft: "Draft", Closed: "Closed" };
+    function statusBadge(status) {
+      const tone = STATUS_BADGE[status] ?? "";
+      return `<span class="ad-badge${tone ? ` ad-badge--${tone}` : ""}">${esc(STATUS_LABEL[status] || status)}</span>`;
+    }
+    function actionsFor(status) {
+      const actions = [];
+      if (status === "PendingApproval") actions.push({ action: "approve", label: "Approve Job", icon: "ti-circle-check", kind: "primary" });
+      if (status !== "Closed") actions.push({ action: "close", label: "Close Job", icon: "ti-player-stop", kind: "danger" });
+      return actions;
+    }
+
+    async function fetchJob(id) {
+      const res = await fetch(`${API_ROUTES.adminJobs}/${id}`, { headers: authHeaders() });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) throw new Error(body.message || "Failed to load job");
+      return body.data;
+    }
+
+    async function performAction(jobId, action) {
+      const reason = prompt("Reason for this action (optional):") || null;
+      const res = await fetch(`${API_ROUTES.adminJobs}/${jobId}/${action}`, {
+        method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ reason }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) { alert(body.message || "Action failed"); return; }
+      render(await fetchJob(getJobId()));
+    }
+
+    function render(j) {
+      const el = document.getElementById("ad-job-detail");
+      const logo = j.companyLogoUrl
+        ? `<img class="ad-detail-banner__photo is-square" src="${esc(j.companyLogoUrl)}" alt="" />`
+        : `<span class="ad-detail-banner__photo is-square ad-fallback" style="display:flex;align-items:center;justify-content:center;font-size:24px;">${esc((j.companyName || "?").charAt(0).toUpperCase())}</span>`;
+
+      el.innerHTML = `
+        <div class="ad-card ad-detail-banner">
+          ${logo}
+          <div class="ad-detail-banner__info">
+            <div class="ad-detail-banner__name-row">
+              <h2>${esc(j.title)}</h2>
+              ${statusBadge(j.status)}
+            </div>
+            <div class="ad-detail-banner__sub">
+              <a href="admin-company-details.html?id=${j.companyId}" style="color:var(--ad-purple);">${esc(j.companyName)}</a>
+              ${j.department ? ` &middot; ${esc(j.department)}` : ""}
+            </div>
+            <div class="ad-detail-banner__meta">
+              <span><i class="ti ti-map-pin"></i>${esc(j.location)}</span>
+              <span><i class="ti ti-briefcase"></i>${esc(j.employmentType)}</span>
+              <span><i class="ti ti-building-skyscraper"></i>${esc(j.workPlaceType)}</span>
+              <span><i class="ti ti-calendar"></i>Posted ${fmtDate(j.postedDate)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ad-detail-split" style="margin-top:1.25rem;">
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div class="ad-card">
+              <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Job Details</h3>
+              <dl class="ad-field-grid">
+                <div><dt>Experience Level</dt><dd>${esc(j.experienceLevel)}</dd></div>
+                <div><dt>Salary Range</dt><dd>${fmtSalary(j.minSalary, j.maxSalary, j.currency)}</dd></div>
+                <div><dt>Posted By</dt><dd>${esc(j.postedByRecruiter || "—")}</dd></div>
+                <div><dt>Application Deadline</dt><dd>${fmtDate(j.applicationDeadline)}</dd></div>
+              </dl>
+            </div>
+
+            <div class="ad-card">
+              <h3 style="margin:0 0 8px; font-size:15px; color:var(--ad-heading);">Description</h3>
+              <p style="margin:0; font-size:13px; color:var(--ad-text-2); line-height:1.6; white-space:pre-wrap;">${esc(j.description)}</p>
+            </div>
+
+            <div class="ad-card">
+              <h3 style="margin:0 0 8px; font-size:15px; color:var(--ad-heading);">Requirements</h3>
+              <p style="margin:0; font-size:13px; color:var(--ad-text-2); line-height:1.6; white-space:pre-wrap;">${esc(j.requirement)}</p>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div class="ad-card">
+              <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Administrative Actions</h3>
+              <div id="ad-action-buttons"></div>
+            </div>
+
+            <div class="ad-card">
+              <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Quick Stats</h3>
+              <div class="ad-stat-mini-grid">
+                <div class="ad-stat-mini" style="grid-column:1 / -1;"><strong>${j.applicationsCount}</strong><span>Applications</span></div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+
+      const btnWrap = document.getElementById("ad-action-buttons");
+      const actions = actionsFor(j.status);
+      btnWrap.innerHTML = actions.length
+        ? actions.map(a => `
+            <button type="button" class="ad-action-btn${a.kind === "primary" ? " ad-action-btn--primary" : a.kind === "danger" ? " ad-action-btn--danger" : ""}" data-action="${a.action}">
+              <i class="ti ${a.icon}" aria-hidden="true"></i> ${a.label}
+            </button>`).join("")
+        : `<div class="ad-empty">No actions available for a closed job.</div>`;
+      btnWrap.querySelectorAll("button[data-action]").forEach(btn => btn.addEventListener("click", () => performAction(j.jobId, btn.dataset.action)));
+    }
+
+    async function init() {
+      const id = getJobId();
+      if (!id) { document.getElementById("ad-job-detail").innerHTML = `<div class="ad-card"><div class="ad-empty">No job id given in the URL.</div></div>`; return; }
+      try {
+        render(await fetchJob(id));
+      } catch (err) {
+        document.getElementById("ad-job-detail").innerHTML = `<div class="ad-card"><div class="ad-empty" style="color:#D64545;">Couldn't load job: ${esc(err.message)}</div></div>`;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

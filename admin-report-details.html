@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Report Details · ProConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="Styles/admin-layout.css" />
+  <link rel="stylesheet" href="Styles/admin-common.css" />
+  <style>
+    .ad-report-post { background: var(--ad-page); border-radius: var(--ad-radius); padding: 14px; }
+    .ad-report-post__meta { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12.5px; color: var(--ad-text-2); }
+    .ad-report-post__attachments { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .ad-report-post__attachments img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; }
+  </style>
+</head>
+
+<body data-page="admin-reports" data-back-href="admin-reports.html" data-back-label="Back to Reports">
+  <main id="admin-content">
+    <div id="ad-report-detail">
+      <div class="ad-card"><div class="ad-skeleton" style="height:100px;"></div></div>
+    </div>
+  </main>
+
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/adminLayout.js"></script>
+  <script>
+    function authHeaders() {
+      const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    }
+    function esc(v) { return String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+    function fmtDate(iso) { return iso ? new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }) : "—"; }
+    function getReportId() { return new URLSearchParams(location.search).get("id"); }
+
+    const STATUS_BADGE = { Pending: "warn", UnderReview: "info", Resolved: "success", Rejected: "", Escalated: "danger", Closed: "" };
+    const STATUS_LABEL = { Pending: "Pending", UnderReview: "Under Review", Resolved: "Resolved", Rejected: "Dismissed", Escalated: "Escalated", Closed: "Closed" };
+    function statusBadge(status) {
+      const tone = STATUS_BADGE[status] ?? "";
+      return `<span class="ad-badge${tone ? ` ad-badge--${tone}` : ""}">${esc(STATUS_LABEL[status] || status)}</span>`;
+    }
+    function actionsFor(status) {
+      const actions = [];
+      if (status !== "Resolved") actions.push({ action: "resolve", label: "Resolve Report", icon: "ti-circle-check", kind: "primary" });
+      if (status !== "Rejected") actions.push({ action: "dismiss", label: "Dismiss Report", icon: "ti-x", kind: "default" });
+      if (status !== "Escalated") actions.push({ action: "escalate", label: "Escalate to Senior Admin", icon: "ti-arrow-up-circle", kind: "danger" });
+      return actions;
+    }
+
+    async function fetchReport(id) {
+      const res = await fetch(`${API_ROUTES.adminReports}/${id}`, { headers: authHeaders() });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) throw new Error(body.message || "Failed to load report");
+      return body.data;
+    }
+
+    async function performAction(reportId, action) {
+      const reason = prompt("Note for this decision (optional):") || null;
+      const res = await fetch(`${API_ROUTES.adminReports}/${reportId}/${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ reason }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) { alert(body.message || "Action failed"); return; }
+      render(await fetchReport(getReportId()));
+    }
+
+    function personCard(label, person, linkBase) {
+      const avatar = person.avatarUrl
+        ? `<img src="${esc(person.avatarUrl)}" alt="" />`
+        : `<span class="ad-fallback">${esc((person.name || "?").charAt(0).toUpperCase())}</span>`;
+      return `
+        <div>
+          <h3 style="margin:0 0 10px; font-size:13px; color:var(--ad-text-muted); text-transform:uppercase; letter-spacing:0.04em;">${esc(label)}</h3>
+          <div class="ad-cell-user">
+            ${avatar}
+            <div>
+              <strong>${esc(person.name)}</strong>
+              <span><a href="${linkBase}?id=${person.userId}" style="color:var(--ad-purple);">View profile</a></span>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function render(r) {
+      const el = document.getElementById("ad-report-detail");
+
+      const postHtml = r.post ? `
+        <div class="ad-card">
+          <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Reported Content Preview</h3>
+          <div class="ad-report-post">
+            <div class="ad-report-post__meta"><strong>${esc(r.post.authorName)}</strong> &middot; ${fmtDate(r.post.postedAt)}</div>
+            <div style="font-size:13px; color:var(--ad-text); white-space:pre-wrap;">${esc(r.post.content)}</div>
+            ${r.post.attachmentUrls && r.post.attachmentUrls.length
+              ? `<div class="ad-report-post__attachments">${r.post.attachmentUrls.map(u => `<img src="${esc(u)}" alt="" />`).join("")}</div>`
+              : ""}
+          </div>
+        </div>` : "";
+
+      el.innerHTML = `
+        <div class="ad-card">
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:4px;">
+            <h2 style="margin:0; font-size:19px; color:var(--ad-heading);">Report Details</h2>
+            ${statusBadge(r.status)}
+          </div>
+          <p style="margin:4px 0 0; font-size:12.5px; color:var(--ad-text-muted);">Report ID: ${esc(r.reportId)} &middot; Reported ${fmtDate(r.dateReported)}</p>
+        </div>
+
+        <div class="ad-detail-split" style="margin-top:1.25rem;">
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div class="ad-card">
+              <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Report Information</h3>
+              <dl class="ad-field-grid">
+                <div><dt>Content Type</dt><dd><span class="ad-badge ad-badge--purple">${esc(r.contentType)}</span></dd></div>
+                <div><dt>Reason</dt><dd>${esc(r.reason)}</dd></div>
+                <div><dt>Status</dt><dd>${statusBadge(r.status)}</dd></div>
+                <div><dt>Date Reported</dt><dd>${fmtDate(r.dateReported)}</dd></div>
+              </dl>
+            </div>
+
+            ${postHtml}
+
+            <div class="ad-card">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                ${personCard("Reporter", r.reporter, "admin-user-details.html")}
+                ${personCard("Reported User", r.reportedUser, "admin-user-details.html")}
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div class="ad-card">
+              <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Moderation Actions</h3>
+              <div id="ad-action-buttons"></div>
+            </div>
+          </div>
+        </div>`;
+
+      const btnWrap = document.getElementById("ad-action-buttons");
+      const actions = actionsFor(r.status);
+      btnWrap.innerHTML = actions.length
+        ? actions.map(a => `
+            <button type="button" class="ad-action-btn${a.kind === "primary" ? " ad-action-btn--primary" : a.kind === "danger" ? " ad-action-btn--danger" : ""}" data-action="${a.action}">
+              <i class="ti ${a.icon}" aria-hidden="true"></i> ${a.label}
+            </button>`).join("")
+        : `<div class="ad-empty">No further actions available.</div>`;
+      btnWrap.querySelectorAll("button[data-action]").forEach(btn => btn.addEventListener("click", () => performAction(r.reportId, btn.dataset.action)));
+    }
+
+    async function init() {
+      const id = getReportId();
+      if (!id) { document.getElementById("ad-report-detail").innerHTML = `<div class="ad-card"><div class="ad-empty">No report id given in the URL.</div></div>`; return; }
+      try {
+        render(await fetchReport(id));
+      } catch (err) {
+        document.getElementById("ad-report-detail").innerHTML = `<div class="ad-card"><div class="ad-empty" style="color:#D64545;">Couldn't load report: ${esc(err.message)}</div></div>`;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

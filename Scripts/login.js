@@ -1,14 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
   if (params.get("reason") === "session-expired") {
-    const alertBox = document.getElementById("form-alert");
-    if (alertBox) {
-      alertBox.textContent = "Your session expired. Please log in again.";
-      alertBox.hidden = false;
-    }
+    showToast("Your session expired. Please log in again.", "error");
   }
   const form = document.getElementById("login-form");
-  const alertBox = document.getElementById("form-alert");
   const btnLogin = document.getElementById("btn-login");
   const loginLabel = document.getElementById("login-label");
   const btnGoogle = document.getElementById("btn-google");
@@ -18,15 +13,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------------- Helpers ----------------
 
-  function hideAlert() {
-    alertBox.hidden = true;
-    alertBox.textContent = "";
+  function showAlert(message) {
+    showToast(message, "error");
   }
 
-  function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
-  }
+  // No-op now — toasts auto-dismiss themselves, so there's no persistent
+  // alert box left to hide.
+  function hideAlert() {}
 
   function clearFieldError(id) {
     const input = document.getElementById(id);

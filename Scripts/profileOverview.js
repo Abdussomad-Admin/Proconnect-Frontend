@@ -70,13 +70,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!file) return;
 
       if (!userId) {
-        alert("Couldn't find your user ID — try logging in again.");
+        showToast("Couldn't find your user ID — try logging in again.", "error");
         return;
       }
 
       const maxSizeBytes = 2 * 1024 * 1024;
       if (file.size > maxSizeBytes) {
-        alert("That image is too large. Please choose one under 2MB.");
+        showToast("That image is too large. Please choose one under 2MB.", "error");
         fileInput.value = "";
         return;
       }
@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (!response.ok || !result.data) {
           console.error("Photo upload failed:", response.status, result);
-          alert(result.message || "Couldn't upload your photo. Please try again.");
+          showToast(result.message || "Couldn't upload your photo. Please try again.", "error");
           return;
         }
 
@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       } catch (err) {
         console.error("Photo upload threw an error:", err);
-        alert("Couldn't reach the server. Check your connection and try again.");
+        showToast("Couldn't reach the server. Check your connection and try again.", "error");
       } finally {
         uploadBtn.classList.remove("is-uploading");
         photoWrap.classList.remove("is-uploading");

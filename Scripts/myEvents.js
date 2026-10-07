@@ -9,18 +9,11 @@
 
   let pendingCancelEventId = null;
 
-  function showToast(message, type = "success") {
-    const container = document.getElementById("toast-stack");
-    const toast = document.createElement("div");
-    toast.className = `toast toast--${type}`;
-    toast.textContent = message;
-    container.appendChild(toast);
-    setTimeout(() => toast.classList.add("is-visible"), 10);
-    setTimeout(() => {
-      toast.classList.remove("is-visible");
-      setTimeout(() => toast.remove(), 300);
-    }, 3500);
-  }
+  // NOTE: showToast is now the global one from Scripts/toast.js (loaded via
+  // a <script> tag on this page) — the local duplicate that used to live
+  // here (using a #toast-stack div) has been removed. Its default type was
+  // "success"; the global default is "info", so calls below that relied on
+  // the old default now pass "success" explicitly.
 
   async function apiRequest(url, options = {}) {
     const response = await fetch(url, {
@@ -187,7 +180,7 @@
         method: "POST",
         body: JSON.stringify({ EventId: eventId }),
       });
-      showToast("Removed from saved events");
+      showToast("Removed from saved events", "success");
       loadEvents();
     } catch (err) {
       showToast(err.message, "error");
@@ -214,7 +207,7 @@
         method: "POST",
         body: JSON.stringify({ EventId: pendingCancelEventId }),
       });
-      showToast("Registration cancelled");
+      showToast("Registration cancelled", "success");
       closeCancelModal();
       loadEvents();
     } catch (err) {

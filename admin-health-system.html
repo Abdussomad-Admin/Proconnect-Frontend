@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>System Health · ProConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="Styles/admin-layout.css" />
+  <link rel="stylesheet" href="Styles/admin-common.css" />
+  <style>
+    .ad-health-banner {
+      display: flex; align-items: center; gap: 14px; padding: 1rem 1.25rem;
+      border-radius: var(--ad-radius-lg); border: 1px solid var(--ad-border);
+    }
+    .ad-health-banner.ok { background: #E9F7EF; border-color: #BFE7CE; }
+    .ad-health-banner.warn { background: #FEF3DC; border-color: #F5DBA0; }
+    .ad-health-banner.down { background: #FCEDED; border-color: #F3C4C4; }
+    .ad-health-banner__icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; background: #fff; }
+    .ad-health-banner.ok .ad-health-banner__icon { color: #1F9254; }
+    .ad-health-banner.warn .ad-health-banner__icon { color: #B7791F; }
+    .ad-health-banner.down .ad-health-banner__icon { color: #D64545; }
+    .ad-health-banner h2 { margin: 0; font-size: 16px; color: var(--ad-heading); }
+    .ad-health-banner p { margin: 2px 0 0; font-size: 12.5px; color: var(--ad-text-2); }
+
+    .ad-service-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+    .ad-service-card { border: 1px solid var(--ad-border); border-radius: var(--ad-radius-lg); padding: 1rem 1.1rem; background: var(--ad-surface); }
+    .ad-service-card__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .ad-service-card__name { font-size: 13.5px; font-weight: 700; color: var(--ad-heading); }
+    .ad-service-card__desc { font-size: 12px; color: var(--ad-text-2); margin: 0 0 8px; }
+    .ad-service-card__meta { font-size: 11px; color: var(--ad-text-muted); }
+
+    .ad-refresh-btn {
+      display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px;
+      border: 1px solid var(--ad-border); border-radius: var(--ad-radius); background: var(--ad-surface);
+      font: 600 13px var(--ad-font); color: var(--ad-text); cursor: pointer;
+    }
+    .ad-refresh-btn:hover { background: var(--ad-page); }
+  </style>
+</head>
+
+<body
+  data-page="admin-system-health"
+  data-title="System Health"
+  data-subtitle="Monitor platform infrastructure and service status."
+  data-icon="ti-heartbeat">
+
+  <main id="admin-content">
+    <div id="admin-page-actions">
+      <button type="button" class="ad-refresh-btn" id="ad-refresh"><i class="ti ti-refresh" aria-hidden="true"></i> Refresh</button>
+    </div>
+
+    <div id="ad-health-banner"><div class="ad-skeleton" style="height:72px;"></div></div>
+
+    <div class="ad-card">
+      <div class="ad-card-title" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+        <h3 style="margin:0; font-size:15px; color:var(--ad-heading);">Services</h3>
+        <span style="font-size:11.5px; color:var(--ad-text-muted);" id="ad-checked-at"></span>
+      </div>
+      <div class="ad-service-grid" id="ad-services"><div class="ad-skeleton" style="height:90px;"></div></div>
+    </div>
+  </main>
+
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/adminLayout.js"></script>
+  <script>
+    function authHeaders() {
+      const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    }
+    function esc(v) { return String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+    function fmtTime(iso) { return iso ? new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" }) : "—"; }
+
+    function toneFor(status) {
+      const s = String(status).toLowerCase();
+      if (s === "healthy" || s === "operational") return "ok";
+      if (s === "degraded") return "warn";
+      return "down";
+    }
+
+    async function fetchHealth() {
+      const res = await fetch(API_ROUTES.adminSystemHealth, { headers: authHeaders() });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) throw new Error(body.message || "Failed to load system health");
+      return body.data;
+    }
+
+    function renderBanner(health) {
+      const el = document.getElementById("ad-health-banner");
+      const tone = toneFor(health.overall);
+      const icon = tone === "ok" ? "ti-circle-check" : tone === "warn" ? "ti-alert-triangle" : "ti-alert-octagon";
+      const label = tone === "ok" ? "All Systems Operational" : tone === "warn" ? "Degraded Performance" : "Service Disruption";
+
+      el.innerHTML = `
+        <div class="ad-health-banner ${tone}">
+          <span class="ad-health-banner__icon"><i class="ti ${icon}" aria-hidden="true"></i></span>
+          <div>
+            <h2>${label}</h2>
+            <p>Last checked ${fmtTime(health.checkedAt)}</p>
+          </div>
+        </div>`;
+    }
+
+    function renderServices(health) {
+      const el = document.getElementById("ad-services");
+      document.getElementById("ad-checked-at").textContent = `Last checked ${fmtTime(health.checkedAt)}`;
+
+      if (!health.services || health.services.length === 0) {
+        el.innerHTML = `<div class="ad-empty">No service checks configured.</div>`;
+        return;
+      }
+
+      el.innerHTML = health.services.map(s => {
+        const tone = toneFor(s.status);
+        return `
+          <div class="ad-service-card">
+            <div class="ad-service-card__top">
+              <span class="ad-service-card__name">${esc(s.name)}</span>
+              ${statusBadge(s.status, tone)}
+            </div>
+            ${s.description ? `<p class="ad-service-card__desc">${esc(s.description)}</p>` : ""}
+            <div class="ad-service-card__meta">${Math.round(s.responseTimeMs)} ms</div>
+          </div>`;
+      }).join("");
+    }
+
+    function statusBadge(status, tone) {
+      const toneClass = tone === "ok" ? "success" : tone === "warn" ? "warn" : "danger";
+      return `<span class="ad-badge ad-badge--${toneClass}">${esc(status)}</span>`;
+    }
+
+    async function load() {
+      try {
+        const health = await fetchHealth();
+        renderBanner(health);
+        renderServices(health);
+      } catch (err) {
+        document.getElementById("ad-health-banner").innerHTML =
+          `<div class="ad-card" style="border-color:#D64545; color:#D64545;">Couldn't load system health: ${esc(err.message)}</div>`;
+        document.getElementById("ad-services").innerHTML = "";
+      }
+    }
+
+    document.getElementById("ad-refresh").addEventListener("click", load);
+    load();
+  </script>
+</body>
+</html>

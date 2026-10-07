@@ -147,13 +147,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!file) return;
 
     if (file.type !== "application/pdf") {
-      alert("Please upload a PDF file.");
+      showToast("Please upload a PDF file.", "error");
       e.target.value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("That file is too large. Please choose one under 5MB.");
+      showToast("That file is too large. Please choose one under 5MB.", "error");
       e.target.value = "";
       return;
     }
@@ -171,13 +171,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || !result.data) {
-        alert(result.message || "Couldn't upload your resume.");
+        showToast(result.message || "Couldn't upload your resume.", "error");
         return;
       }
 
       await reload();
     } catch (err) {
-      alert("Couldn't reach the server. Check your connection and try again.");
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     } finally {
       e.target.value = "";
     }
@@ -202,13 +202,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || result.status === false) {
-        alert(result.message || "Couldn't delete your resume.");
+        showToast(result.message || "Couldn't delete your resume.", "error");
         return;
       }
 
       await reload();
     } catch (err) {
-      alert("Couldn't reach the server. Check your connection and try again.");
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     }
   }
 

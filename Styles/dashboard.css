@@ -1470,14 +1470,6 @@ a {
 }
 
 @media (max-width: 960px) {
-  .app-shell {
-    grid-template-columns: 1fr;
-  }
-
-  .sidebar {
-    display: none;
-  }
-
   .profile-grid-3 {
     grid-template-columns: 1fr;
   }
@@ -1590,17 +1582,6 @@ body.sidebar-collapsed .sidebar-collapse-toggle {
   font-size: 17px;
 }
 
-/* When collapsed, the fixed 240px sidebar width in the responsive
-   breakpoint below no longer applies — the 76px collapsed rule above
-   takes priority at any screen size down to where the sidebar hides
-   itself entirely (960px, per the existing rule). */
-@media (max-width: 960px) {
-  body.sidebar-collapsed .app-shell {
-    grid-template-columns: 1fr;
-  }
-}
-
-
 /* ---------- Focus styling (applies app-wide) ---------- */
 
 button:focus-visible,
@@ -1615,4 +1596,25 @@ textarea:focus-visible {
 button:focus:not(:focus-visible),
 a:focus:not(:focus-visible) {
   outline: none;
+}
+
+/* ---------- Sidebar brand mark (rendered by sidebar.js) ---------- */
+
+.auth-brand__mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--pc-purple);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* sidebar.js renders the name with .auth-brand__name, so the collapsed
+   rule has to target that class (the old .sidebar-brand__name never matched). */
+body.sidebar-collapsed .sidebar-brand .auth-brand__name {
+  display: none;
 }

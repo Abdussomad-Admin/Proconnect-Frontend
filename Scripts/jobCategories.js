@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const alertBox = document.getElementById("form-alert");
   let categories = [];
   let currentView = "grid";
 
@@ -19,8 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
+    showToast(message, "error");
   }
 
   // Icon is presentation-only guesswork based on category name — the

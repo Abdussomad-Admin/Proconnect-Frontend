@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const alertBox = document.getElementById("form-alert");
   const steps = Array.from(document.querySelectorAll(".form-step"));
   const progressItems = Array.from(document.querySelectorAll(".step-progress__item"));
   const btnSkip = document.getElementById("btn-skip");
@@ -25,14 +24,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------------- Shared helpers ----------------
 
-  function hideAlert() {
-    alertBox.hidden = true;
-    alertBox.textContent = "";
-  }
+  // No-op now — toasts auto-dismiss themselves, so there's no persistent
+  // alert box left to hide.
+  function hideAlert() {}
 
+  // Routes to the global toast (Scripts/toast.js) instead of the old
+  // #form-alert div; call sites are unchanged.
   function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
+    showToast(message, "error");
   }
 
   function isValidUrl(value) {

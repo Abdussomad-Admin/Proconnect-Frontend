@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const loadingState = document.getElementById("loading-state");
-  const alertBox = document.getElementById("form-alert");
   const profileLayout = document.getElementById("profile-layout");
 
   const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
@@ -9,14 +8,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   // without refetching, and so Overview can be re-rendered after a save.
   let currentProfile = null;
 
+  // Routes to the global toast (Scripts/toast.js) instead of the old
+  // #form-alert div; call sites are unchanged.
   function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
+    showToast(message, "error");
   }
 
-  function hideAlert() {
-    alertBox.hidden = true;
-  }
+  // No-op now — toasts auto-dismiss themselves, so there's no persistent
+  // alert box left to hide.
+  function hideAlert() {}
 
   function escapeHtml(str) {
     const div = document.createElement("div");
@@ -246,13 +246,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const userId = localStorage.getItem("pc_user_id");
     if (!userId) {
-      alert("Couldn't find your user ID — try logging in again.");
+      showToast("Couldn't find your user ID — try logging in again.", "error");
       return;
     }
 
     const maxSizeBytes = 2 * 1024 * 1024;
     if (file.size > maxSizeBytes) {
-      alert("That image is too large. Please choose one under 2MB.");
+      showToast("That image is too large. Please choose one under 2MB.", "error");
       editPhotoInput.value = "";
       return;
     }
@@ -274,7 +274,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (!response.ok || !result.data) {
         console.error("Photo upload failed:", response.status, result);
-        alert(result.message || "Couldn't upload your photo. Please try again.");
+        showToast(result.message || "Couldn't upload your photo. Please try again.", "error");
         return;
       }
 
@@ -295,7 +295,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       localStorage.setItem("pc_avatar_url", newUrl);
     } catch (err) {
       console.error("Photo upload threw an error:", err);
-      alert("Couldn't reach the server. Check your connection and try again.");
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     } finally {
       editAvatarPreview.classList.remove("is-uploading");
       editPhotoInput.value = "";

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>User Details · ProConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="Styles/admin-layout.css" />
+  <link rel="stylesheet" href="Styles/admin-common.css" />
+</head>
+
+<body data-page="admin-users" data-back-href="admin-users.html" data-back-label="Back to Users">
+  <main id="admin-content">
+    <div id="ad-user-detail">
+      <div class="ad-card"><div class="ad-skeleton" style="height:100px;"></div></div>
+    </div>
+  </main>
+
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/adminLayout.js"></script>
+  <script>
+    function authHeaders() {
+      const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    }
+    function esc(v) {
+      return String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+    function fmtDate(iso) {
+      if (!iso) return "—";
+      return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    }
+    function getUserId() {
+      return new URLSearchParams(location.search).get("id");
+    }
+
+    const STATUS_BADGE = { Active: "success", PendingVerification: "warn", Deactivated: "warn", Suspended: "danger", Banned: "danger" };
+    const STATUS_LABEL = { Active: "Active", PendingVerification: "Pending Verification", Deactivated: "Restricted", Suspended: "Suspended", Banned: "Banned" };
+
+    function statusBadge(status) {
+      const tone = STATUS_BADGE[status] || "";
+      return `<span class="ad-badge${tone ? ` ad-badge--${tone}` : ""}">${esc(STATUS_LABEL[status] || status)}</span>`;
+    }
+
+    function actionsFor(status) {
+      const actions = [];
+      if (status !== "Active") actions.push({ action: "restore", label: "Restore Account", icon: "ti-rotate", kind: "primary" });
+      if (status !== "Deactivated") actions.push({ action: "restrict", label: "Restrict Account", icon: "ti-shield-lock", kind: "default" });
+      if (status !== "Suspended") actions.push({ action: "suspend", label: "Suspend Account", icon: "ti-player-pause", kind: "default" });
+      if (status !== "Banned") actions.push({ action: "ban", label: "Ban User", icon: "ti-ban", kind: "danger" });
+      return actions;
+    }
+
+    async function fetchUser(id) {
+      const res = await fetch(`${API_ROUTES.adminUsers}/${id}`, { headers: authHeaders() });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) throw new Error(body.message || "Failed to load user");
+      return body.data;
+    }
+
+    async function performAction(userId, action) {
+      const reason = prompt("Reason for this action (optional):") || null;
+      const res = await fetch(`${API_ROUTES.adminUsers}/${userId}/${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ reason }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) { alert(body.message || "Action failed"); return; }
+      render(await fetchUser(getUserId()));
+    }
+
+    function render(u) {
+      const el = document.getElementById("ad-user-detail");
+
+      const avatar = u.avatarUrl
+        ? `<img class="ad-detail-banner__photo" src="${esc(u.avatarUrl)}" alt="" />`
+        : `<span class="ad-detail-banner__photo ad-fallback" style="display:flex;align-items:center;justify-content:center;font-size:24px;">${esc((u.name || "?").charAt(0).toUpperCase())}</span>`;
+
+      const proSection = u.professionalSummary ? `
+        <div class="ad-card">
+          <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Professional Profile</h3>
+          <dl class="ad-field-grid">
+            <div><dt>Headline</dt><dd>${esc(u.professionalSummary.headline || "—")}</dd></div>
+            <div><dt>Availability</dt><dd>${esc(u.professionalSummary.availabilityStatus)}</dd></div>
+          </dl>
+          <div class="ad-stat-mini-grid" style="margin-top:14px;">
+            <div class="ad-stat-mini"><strong>${u.professionalSummary.jobsApplied}</strong><span>Jobs Applied</span></div>
+            <div class="ad-stat-mini"><strong>${u.professionalSummary.postsCreated}</strong><span>Posts Created</span></div>
+            <div class="ad-stat-mini"><strong>${u.professionalSummary.savedJobs}</strong><span>Saved Jobs</span></div>
+          </div>
+        </div>` : "";
+
+      const recSection = u.recruiterSummary ? `
+        <div class="ad-card">
+          <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Recruiter Profile</h3>
+          <dl class="ad-field-grid">
+            <div><dt>Job Title</dt><dd>${esc(u.recruiterSummary.jobTitle || "—")}</dd></div>
+            <div><dt>Company</dt><dd>${u.recruiterSummary.companyId ? `<a href="admin-company-details.html?id=${u.recruiterSummary.companyId}" style="color:var(--ad-purple);">${esc(u.recruiterSummary.companyName)}</a>` : "—"}</dd></div>
+            <div><dt>Recruiter Status</dt><dd>${esc(u.recruiterSummary.recruiterStatus)}</dd></div>
+          </dl>
+          <div class="ad-stat-mini-grid" style="margin-top:14px;">
+            <div class="ad-stat-mini"><strong>${u.recruiterSummary.jobsPosted}</strong><span>Jobs Posted</span></div>
+            <div class="ad-stat-mini"><strong>${u.recruiterSummary.eventsCreated}</strong><span>Events Created</span></div>
+          </div>
+        </div>` : "";
+
+      el.innerHTML = `
+        <div class="ad-card ad-detail-banner">
+          ${avatar}
+          <div class="ad-detail-banner__info">
+            <div class="ad-detail-banner__name-row">
+              <h2>${esc(u.name)}</h2>
+              <span class="ad-badge ad-badge--purple">${esc(u.type)}</span>
+              ${statusBadge(u.status)}
+              ${u.isVerified ? '<span class="ad-badge ad-badge--info"><i class="ti ti-circle-check" aria-hidden="true"></i>&nbsp;Verified</span>' : ""}
+            </div>
+            <div class="ad-detail-banner__sub">${esc(u.email)}</div>
+            <div class="ad-detail-banner__meta">
+              ${u.location ? `<span><i class="ti ti-map-pin"></i>${esc(u.location)}</span>` : ""}
+              <span><i class="ti ti-calendar"></i>Joined ${fmtDate(u.joinedAt)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ad-detail-split" style="margin-top:1.25rem;">
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            ${u.bio ? `<div class="ad-card"><h3 style="margin:0 0 8px; font-size:15px; color:var(--ad-heading);">Bio</h3><p style="margin:0; font-size:13px; color:var(--ad-text-2); line-height:1.6;">${esc(u.bio)}</p></div>` : ""}
+            ${proSection}
+            ${recSection}
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div class="ad-card">
+              <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Administrative Actions</h3>
+              <div id="ad-action-buttons"></div>
+            </div>
+
+            <div class="ad-card">
+              <h3 style="margin:0 0 12px; font-size:15px; color:var(--ad-heading);">Quick Stats</h3>
+              <div class="ad-stat-mini-grid">
+                <div class="ad-stat-mini"><strong>${u.connectionsCount}</strong><span>Connections</span></div>
+                <div class="ad-stat-mini"><strong>${u.followersCount}</strong><span>Followers</span></div>
+                <div class="ad-stat-mini" style="grid-column:1 / -1;"><strong>${u.reportsInvolvingUser}</strong><span>Reports Involving User</span></div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+
+      const btnWrap = document.getElementById("ad-action-buttons");
+      btnWrap.innerHTML = actionsFor(u.status).map(a => `
+        <button type="button" class="ad-action-btn${a.kind === "primary" ? " ad-action-btn--primary" : a.kind === "danger" ? " ad-action-btn--danger" : ""}" data-action="${a.action}">
+          <i class="ti ${a.icon}" aria-hidden="true"></i> ${a.label}
+        </button>`).join("");
+      btnWrap.querySelectorAll("button[data-action]").forEach(btn => {
+        btn.addEventListener("click", () => performAction(u.userId, btn.dataset.action));
+      });
+    }
+
+    async function init() {
+      const id = getUserId();
+      if (!id) {
+        document.getElementById("ad-user-detail").innerHTML = `<div class="ad-card"><div class="ad-empty">No user id given in the URL.</div></div>`;
+        return;
+      }
+      try {
+        render(await fetchUser(id));
+      } catch (err) {
+        document.getElementById("ad-user-detail").innerHTML = `<div class="ad-card"><div class="ad-empty" style="color:#D64545;">Couldn't load user: ${esc(err.message)}</div></div>`;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -17,7 +17,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const alertBox = document.getElementById("form-alert");
   let job = null;
   let isSaved = false;
   let alreadyApplied = false;
@@ -29,11 +28,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
+  // Thin wrapper kept so every existing showAlert(message, isSuccess) call
+  // site below didn't need touching — now routes to the global toast.
   function showAlert(message, isSuccess = false) {
-    alertBox.textContent = message;
-    alertBox.classList.toggle("form-alert--success", isSuccess);
-    alertBox.hidden = false;
-    alertBox.scrollIntoView({ behavior: "smooth", block: "start" });
+    showToast(message, isSuccess ? "success" : "error");
   }
 
   function employmentLabel(type) {
@@ -151,8 +149,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("about-company-name").textContent = job.companyName;
     document.getElementById("about-company-summary").textContent =
       "This is what we know about the company from the job listing. A fuller company profile isn't wired up on this page yet.";
-    document.getElementById("view-company-profile-btn").href = `company-profile-public.html?companyId=${job.companyId}`;
-    document.getElementById("view-full-company-btn").href = `company-profile-public.html?companyId=${job.companyId}`;
+    document.getElementById("view-company-profile-btn").href = `company-public-profile.html?companyId=${job.companyId}`;
+    document.getElementById("view-full-company-btn").href = `company-public-profile.html?companyId=${job.companyId}`;
 
     document.getElementById("sticky-company-name").textContent = job.companyName;
 

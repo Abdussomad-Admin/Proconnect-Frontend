@@ -7,9 +7,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const urlJobId = new URLSearchParams(window.location.search).get("jobId") || "";
+  const alertBox = document.getElementById("form-alert");
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlJobId = urlParams.get("jobId") || "";
+  const urlStatus = urlParams.get("status") || "";
 
-  let currentStatus = "";
+  let currentStatus = urlStatus;
   let currentJobId = urlJobId;
   let currentKeyword = "";
   let currentPage = 1;
@@ -20,6 +23,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   let lastLoadedItems = [];
   let searchDebounce = null;
 
+  // Reflect an incoming ?status= filter in the tab strip on first paint.
+  if (urlStatus) {
+    document.querySelectorAll(".ap-status-tab").forEach((t) => {
+      t.classList.toggle("is-active", t.dataset.status === urlStatus);
+    });
+  }
+
   // ---------------- Helpers ----------------
 
   function escapeHtml(str) {
@@ -27,11 +37,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
-  // Thin wrapper kept so every existing showAlert(message, isSuccess) call
-  // site below didn't need touching — now routes to the global toast
-  // (Scripts/toast.js) instead of the old #form-alert div.
   function showAlert(message, isSuccess = false) {
-    showToast(message, isSuccess ? "success" : "error");
+    alertBox.textContent = message;
+    alertBox.classList.toggle("form-alert--success", isSuccess);
+    alertBox.hidden = false;
+    setTimeout(() => { alertBox.hidden = true; }, 4000);
   }
 
   function formatDateTime(dateStr) {
@@ -51,7 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const STATUS_BADGE_CLASS = {
     New: "jm-status-badge--new", Screening: "jm-status-badge--screening", Shortlisted: "jm-status-badge--shortlisted",
     Interview: "jm-status-badge--interview", Offered: "jm-status-badge--offered", Hired: "jm-status-badge--hired",
-    Rejected: "jm-status-badge--rejected", Withdrawn: "jm-status-badge--withdrawn",
+    Rejected: "jm-status-badge--rejected",
   };
 
   function statusBadge(status) {
@@ -113,7 +123,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("count-offered").textContent = `(${c.offered})`;
         document.getElementById("count-hired").textContent = `(${c.hired})`;
         document.getElementById("count-rejected").textContent = `(${c.rejected})`;
-        document.getElementById("count-withdrawn").textContent = `(${c.withdrawn || 0})`;
       }
     } catch (err) {
       console.error("Status counts fetch threw an error:", err);
@@ -258,9 +267,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   function renderRows(items) {
     const body = document.getElementById("applications-table-body");
 
-    body.innerHTML = items.map((app) => {
-      const isWithdrawn = app.jobStatus === "Withdrawn";
-      return `
+    body.innerHTML = items.map((app) => `
       <tr data-application-id="${app.applicationId}">
         <td>
           <div class="ap-candidate-cell">
@@ -282,15 +289,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         <td>
           <div class="ap-row-actions">
             <button type="button" class="jm-action-btn" title="View" data-row-action="view"><i class="ti ti-eye" aria-hidden="true"></i></button>
-            ${!isWithdrawn ? `
             <button type="button" class="jm-action-btn" title="Schedule Interview" data-row-action="schedule"><i class="ti ti-calendar-event" aria-hidden="true"></i></button>
             <button type="button" class="jm-action-btn" title="More actions" data-row-action="more"><i class="ti ti-dots" aria-hidden="true"></i></button>
-            ` : ""}
           </div>
         </td>
       </tr>
-    `;
-    }).join("");
+    `).join("");
 
     body.querySelectorAll("tr").forEach((row) => {
       const app = items.find((a) => a.applicationId === row.dataset.applicationId);
@@ -301,29 +305,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         openDetailPanel(app);
       });
 
-      const viewBtn = row.querySelector('[data-row-action="view"]');
-      if (viewBtn) {
-        viewBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          openDetailPanel(app);
-        });
-      }
+      row.querySelector('[data-row-action="view"]').addEventListener("click", (e) => {
+        e.stopPropagation();
+        openDetailPanel(app);
+      });
 
-      const scheduleBtn = row.querySelector('[data-row-action="schedule"]');
-      if (scheduleBtn) {
-        scheduleBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          openInterviewModal(app.applicationId);
-        });
-      }
+      row.querySelector('[data-row-action="schedule"]').addEventListener("click", (e) => {
+        e.stopPropagation();
+        openInterviewModal(app.applicationId);
+      });
 
-      const moreBtn = row.querySelector('[data-row-action="more"]');
-      if (moreBtn) {
-        moreBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          openRowMenu(e.currentTarget, app);
-        });
-      }
+      row.querySelector('[data-row-action="more"]').addEventListener("click", (e) => {
+        e.stopPropagation();
+        openRowMenu(e.currentTarget, app);
+      });
     });
   }
 
@@ -400,8 +395,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const detailBody = document.getElementById("detail-body");
 
   function openDetailPanel(app) {
-    const isWithdrawn = app.jobStatus === "Withdrawn";
-
     detailBody.innerHTML = `
       <div class="ap-detail-name">
         <span class="ap-detail-avatar">
@@ -448,13 +441,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
       </div>` : ""}
 
-      ${isWithdrawn ? `
-      <div class="ap-detail-section">
-        <h4>Current Stage</h4>
-        <p>${statusBadge(app.jobStatus)}</p>
-        <p class="jm-placeholder__sub">This application was withdrawn by the candidate and can no longer be moved or actioned.</p>
-      </div>
-      ` : `
       <div class="ap-detail-section">
         <h4>Current Stage</h4>
         <select class="ap-stage-select" id="stage-select">
@@ -478,17 +464,14 @@ document.addEventListener("DOMContentLoaded", async () => {
           </button>
         </div>
       </div>
-      `}
     `;
 
-    if (!isWithdrawn) {
-      document.getElementById("stage-select").addEventListener("change", (e) => {
-        updateStage(app.applicationId, e.target.value);
-      });
-      document.getElementById("action-schedule-interview").addEventListener("click", () => openInterviewModal(app.applicationId));
-      document.getElementById("action-reject").addEventListener("click", () => openRejectModal(app.applicationId));
-      document.getElementById("action-contact").addEventListener("click", () => contactCandidate(app.professionalProfileId));
-    }
+    document.getElementById("stage-select").addEventListener("change", (e) => {
+      updateStage(app.applicationId, e.target.value);
+    });
+    document.getElementById("action-schedule-interview").addEventListener("click", () => openInterviewModal(app.applicationId));
+    document.getElementById("action-reject").addEventListener("click", () => openRejectModal(app.applicationId));
+    document.getElementById("action-contact").addEventListener("click", () => contactCandidate(app.professionalProfileId));
 
     detailPanel.hidden = false;
   }
@@ -523,10 +506,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   let stageTargetApplicationId = null;
 
   function openStageModal(applicationId, currentStatusValue) {
-    if (currentStatusValue === "Withdrawn") {
-      showAlert("Withdrawn applications can't be moved to another stage.");
-      return;
-    }
     stageTargetApplicationId = applicationId;
     document.getElementById("stage-modal-select").value = currentStatusValue;
     stageOverlay.hidden = false;

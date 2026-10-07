@@ -421,55 +421,60 @@ function setBadgeCounts(counts) {
   });
 }
 
-// Fetches badge counts that should be visible everywhere, not just on the
-// page that "owns" that data (e.g. the pending-connections count should
-// show on the dashboard too, not only once you've navigated into
-// network-overview.html). Runs on every page that includes sidebar.js.
-// Silently no-ops if there's no token yet, or if a given route isn't
-// defined in API_ROUTES (e.g. messages/notifications routes don't exist
-// yet — Module 6 isn't built) — each count is independent, so one
-// missing route never blocks the others.
-async function loadGlobalBadgeCounts() {
+// Below this width, force the collapsed (icon-only) rail regardless of
+// the user's stored preference — there just isn't room for the full
+// sidebar. Above it, the stored preference (toggled via the collapse
+// button) applies as normal. The full mobile hide (.sidebar{display:none})
+// still kicks in separately at 960px in dashboard.css.
+const SIDEBAR_AUTO_COLLAPSE_WIDTH = 1200;
+
+function shouldForceCollapse() {
+  return window.innerWidth <= SIDEBAR_AUTO_COLLAPSE_WIDTH;
+}
+
+function applyResponsiveSidebarState() {
+  applySidebarCollapsedState(shouldForceCollapse() ? true : isSidebarCollapsed());
+}
+
+if (shouldForceCollapse() || isSidebarCollapsed()) {
+  document.body.classList.add("sidebar-collapsed");
+}
+
+async function loadNotificationBadge() {
+  if (typeof API_ROUTES === "undefined" || !API_ROUTES.getUnreadNotificationCount) return;
+
   const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
   if (!token) return;
 
-  const authHeaders = { Authorization: `Bearer ${token}` };
+  try {
+    const res = await fetch(API_ROUTES.getUnreadNotificationCount, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const result = await res.json().catch(() => ({}));
+    if (!res.ok) return;
 
-  async function fetchCount(url) {
-    if (!url) return null;
-    try {
-      const response = await fetch(`${url}?pageNumber=1&pageSize=1&usePaging=true`, { headers: authHeaders });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok || result.status === false) return null;
-      return result.data?.totalCount ?? 0;
-    } catch {
-      return null;
-    }
+    const data = result.data;
+    const count =
+      typeof data === "number" ? data : data?.count ?? data?.unreadCount ?? 0;
+
+    setBadgeCounts({ notifications: count });
+  } catch (err) {
+    console.error("Unread notification count fetch threw an error:", err);
   }
-
-  const [network, messages, notifications] = await Promise.all([
-    fetchCount(typeof API_ROUTES !== "undefined" ? API_ROUTES.getReceivedRequests : null),
-    fetchCount(typeof API_ROUTES !== "undefined" ? API_ROUTES.getUnreadMessagesCount : null),
-    fetchCount(typeof API_ROUTES !== "undefined" ? API_ROUTES.getUnreadNotificationsCount : null),
-  ]);
-
-  const counts = {};
-  if (network !== null) counts.network = network;
-  if (messages !== null) counts.messages = messages;
-  if (notifications !== null) counts.notifications = notifications;
-
-  if (Object.keys(counts).length) setBadgeCounts(counts);
-}
-
-if (isSidebarCollapsed()) {
-  document.body.classList.add("sidebar-collapsed");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   renderSidebar();
   renderTopbarNavIcons();
   renderTopbarUserInfo();
-  loadGlobalBadgeCounts();
+  applyResponsiveSidebarState();
+  loadNotificationBadge();
+});
+
+let sidebarResizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(sidebarResizeTimer);
+  sidebarResizeTimer = setTimeout(applyResponsiveSidebarState, 120);
 });
 
 window.ProConnectShell = { setBadgeCounts };

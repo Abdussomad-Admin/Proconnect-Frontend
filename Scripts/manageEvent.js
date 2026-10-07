@@ -12,18 +12,11 @@
   let editingAgendaItemId = null;
   const registrationsState = { pageNumber: 1, pageSize: 10, status: "" };
 
-  function showToast(message, type = "success") {
-    const container = document.getElementById("toast-container");
-    const toast = document.createElement("div");
-    toast.className = `toast toast--${type}`;
-    toast.textContent = message;
-    container.appendChild(toast);
-    setTimeout(() => toast.classList.add("is-visible"), 10);
-    setTimeout(() => {
-      toast.classList.remove("is-visible");
-      setTimeout(() => toast.remove(), 300);
-    }, 3500);
-  }
+  // NOTE: showToast is now the global one from Scripts/toast.js (loaded via
+  // a <script> tag on this page) — the local duplicate that used to live
+  // here (using a #toast-container div) has been removed. Its default type
+  // was "success"; the global default is "info", so calls that relied on
+  // the old default now pass "success" explicitly.
 
   async function apiRequest(url, options = {}) {
     const response = await fetch(url, {
@@ -157,7 +150,7 @@
         method: "POST",
         body: JSON.stringify({ EventId: eventId }),
       });
-      showToast("Event published successfully");
+      showToast("Event published successfully", "success");
       loadEvent();
     } catch (err) {
       showToast(err.message, "error");
@@ -190,7 +183,7 @@
         method: "POST",
         body: JSON.stringify({ EventId: eventId, CancellationReason: reason }),
       });
-      showToast("Event cancelled and attendees notified");
+      showToast("Event cancelled and attendees notified", "success");
       closeCancelModal();
       loadEvent();
     } catch (err) {
@@ -273,7 +266,7 @@
       if (photoFile) formData.append("Photo", photoFile);
 
       await apiRequest(API_ROUTES.addEventSpeaker, { method: "POST", body: formData });
-      showToast("Speaker added");
+      showToast("Speaker added", "success");
       document.getElementById("speaker-modal-overlay").hidden = true;
       loadEvent();
     } catch (err) {
@@ -289,7 +282,7 @@
         method: "POST",
         body: JSON.stringify({ EventId: eventId, SpeakerId: speakerId }),
       });
-      showToast("Speaker removed");
+      showToast("Speaker removed", "success");
       loadEvent();
     } catch (err) {
       showToast(err.message, "error");
@@ -389,10 +382,10 @@
           method: "POST",
           body: JSON.stringify({ ...payload, AgendaItemId: editingAgendaItemId }),
         });
-        showToast("Agenda item updated");
+        showToast("Agenda item updated", "success");
       } else {
         await apiRequest(API_ROUTES.addEventAgendaItem, { method: "POST", body: JSON.stringify(payload) });
-        showToast("Agenda item added");
+        showToast("Agenda item added", "success");
       }
 
       document.getElementById("agenda-modal-overlay").hidden = true;
@@ -410,7 +403,7 @@
         method: "POST",
         body: JSON.stringify({ EventId: eventId, AgendaItemId: agendaItemId }),
       });
-      showToast("Agenda item removed");
+      showToast("Agenda item removed", "success");
       loadEvent();
     } catch (err) {
       showToast(err.message, "error");
@@ -498,7 +491,7 @@
         method: "POST",
         body: JSON.stringify({ RegistrationId: registrationId, Status: status }),
       });
-      showToast("Registration updated");
+      showToast("Registration updated", "success");
       loadRegistrations();
       loadEvent();
     } catch (err) {

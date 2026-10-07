@@ -63,13 +63,63 @@
 
         <div class="form-alert" id="form-alert" role="alert" hidden></div>
 
-        <!-- ---------- Overview (placeholder — deferred until stats template is provided) ---------- -->
+        <!-- ---------- Overview (real data) ---------- -->
         <section class="jm-panel" id="panel-overview">
-          <div class="card jm-placeholder">
-            <i class="ti ti-chart-bar" aria-hidden="true"></i>
-            <p><strong>Overview coming soon.</strong></p>
-            <p class="jm-placeholder__sub">This tab will show your dashboard stats once the analytics template is wired up.</p>
+
+          <div class="jm-loading" id="overview-loading">
+            <span class="spinner spinner--dark"></span>
+            <span>Loading your overview...</span>
           </div>
+
+          <div id="overview-content" hidden>
+
+            <div class="jm-stats-grid">
+              <div class="card jm-stat-card">
+                <span class="jm-stat-card__icon"><i class="ti ti-briefcase" aria-hidden="true"></i></span>
+                <div><strong id="stat-active-jobs">0</strong><span>Active Job Posts</span></div>
+              </div>
+              <div class="card jm-stat-card">
+                <span class="jm-stat-card__icon"><i class="ti ti-users" aria-hidden="true"></i></span>
+                <div><strong id="stat-total-applications">0</strong><span>Total Applications</span></div>
+              </div>
+              <div class="card jm-stat-card">
+                <span class="jm-stat-card__icon"><i class="ti ti-eye" aria-hidden="true"></i></span>
+                <div><strong id="stat-under-review">0</strong><span>Under Review</span></div>
+              </div>
+              <div class="card jm-stat-card">
+                <span class="jm-stat-card__icon"><i class="ti ti-calendar-event" aria-hidden="true"></i></span>
+                <div><strong id="stat-interviews">0</strong><span>Interviews Scheduled</span></div>
+              </div>
+              <div class="card jm-stat-card">
+                <span class="jm-stat-card__icon"><i class="ti ti-star" aria-hidden="true"></i></span>
+                <div><strong id="stat-offers">0</strong><span>Offers Extended</span></div>
+              </div>
+            </div>
+
+            <div class="jm-overview-row">
+
+              <div class="card jm-overview-card">
+                <div class="jm-overview-card__header">
+                  <h3>Recent Job Posts</h3>
+                  <button type="button" class="link-btn" data-goto-tab="my-job-posts">View all job posts</button>
+                </div>
+                <div id="recent-jobs-list" class="jm-recent-jobs-list"></div>
+                <p class="jm-placeholder__sub" id="recent-jobs-empty" hidden>No job posts yet.</p>
+              </div>
+
+              <div class="card jm-overview-card">
+                <div class="jm-overview-card__header">
+                  <h3>Upcoming Interviews</h3>
+                  <button type="button" class="link-btn" id="view-all-interviews-btn">View all</button>
+                </div>
+                <div id="upcoming-interviews-list" class="jm-interviews-list"></div>
+                <p class="jm-placeholder__sub" id="upcoming-interviews-empty" hidden>No interviews scheduled.</p>
+              </div>
+
+            </div>
+
+          </div>
+
         </section>
 
         <!-- ---------- My Job Posts ---------- -->
@@ -133,31 +183,7 @@
 
         </section>
 
-        <!-- ---------- Placeholder tabs ---------- -->
-        <section class="jm-panel" id="panel-candidates" hidden>
-          <div class="card jm-placeholder">
-            <i class="ti ti-users" aria-hidden="true"></i>
-            <p><strong>Candidates coming soon.</strong></p>
-            <p class="jm-placeholder__sub">A company-wide candidates view across all your job posts isn't built yet.</p>
-          </div>
-        </section>
-
-        <section class="jm-panel" id="panel-interviews" hidden>
-          <div class="card jm-placeholder">
-            <i class="ti ti-calendar-event" aria-hidden="true"></i>
-            <p><strong>Interviews coming soon.</strong></p>
-            <p class="jm-placeholder__sub">Interview scheduling is a separate module, not yet built.</p>
-          </div>
-        </section>
-
-        <section class="jm-panel" id="panel-offers" hidden>
-          <div class="card jm-placeholder">
-            <i class="ti ti-file-check" aria-hidden="true"></i>
-            <p><strong>Offers coming soon.</strong></p>
-            <p class="jm-placeholder__sub">Offer management is a separate module, not yet built.</p>
-          </div>
-        </section>
-
+        <!-- ---------- Analytics (snapshot only — no historical trend data exists) ---------- -->
         <section class="jm-panel" id="panel-analytics" hidden>
           <div class="card jm-placeholder">
             <i class="ti ti-chart-dots" aria-hidden="true"></i>
@@ -185,7 +211,7 @@
 
   <script src="Scripts/config.js"></script>
   <script src="Scripts/sidebar.js"></script>
-  <script src="Scripts/jobs.js"></script>
   <script src="Scripts/toast.js"></script>
+  <script src="Scripts/jobs.js"></script>
 </body>
 </html>

@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Job Insights · ProConnect</title>
   <link rel="stylesheet" href="Styles/dashboard.css" />
-  <link rel="stylesheet" href="Styles/companyLayout.css" />
   <link rel="stylesheet" href="Styles/analytics-dashboard.css" />
   <link rel="stylesheet" href="Styles/toast.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.44.0/tabler-icons.min.css" />
@@ -15,17 +14,33 @@
 
   <div class="app-shell">
 
-    <aside id="app-sidebar"></aside>
+    <div id="sidebar-root"></div>
 
-    <div class="app-main">
+    <main class="app-main">
 
-      <header id="app-topbar"></header>
+      <header class="app-topbar">
+        <div class="app-search">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input type="text" placeholder="Search candidates, jobs, skills..." />
+        </div>
+        <div class="app-topbar__icons">
+          <div class="topbar-user" id="topbar-user-toggle">
+            <img id="topbar-avatar" hidden alt="" />
+            <span id="topbar-name">—</span>
+            <i class="ti ti-chevron-down" aria-hidden="true"></i>
+          </div>
+          <div class="dropdown-menu" id="topbar-dropdown">
+            <a href="recruiter-profile.html" class="dropdown-menu__item"><i class="ti ti-user" aria-hidden="true"></i> View Profile</a>
+            <button type="button" class="dropdown-menu__item dropdown-menu__item--danger" id="topbar-logout"><i class="ti ti-logout" aria-hidden="true"></i> Log out</button>
+          </div>
+        </div>
+      </header>
 
-      <main class="app-content">
+      <div class="app-content">
 
         <div class="an-header">
           <div>
-            <a href="recruiter-analytics-dashboard.html" class="link-btn" style="margin-bottom: 6px; display: inline-block;">
+            <a href="recruiter-analytics-dashboard.html" class="link-btn">
               <i class="ti ti-arrow-left" aria-hidden="true"></i> Back to Analytics
             </a>
             <h1 class="an-title">Job Insights</h1>
@@ -88,8 +103,8 @@
             </div>
           </div>
 
-          <div class="an-chart-row">
-            <div class="card an-kpi-card" style="margin-bottom: 1rem;">
+          <div class="an-kpi-row an-kpi-row--single">
+            <div class="card an-kpi-card">
               <div class="an-kpi-card__icon"><i class="ti ti-eye" aria-hidden="true"></i></div>
               <div class="an-kpi-card__label">Job Views</div>
               <div class="an-kpi-card__value" id="single-views-total">—</div>
@@ -120,7 +135,7 @@
         <!-- ---------- All-jobs comparison view ---------- -->
         <div id="all-jobs-view">
 
-          <div class="an-kpi-row" style="grid-template-columns: 1fr;">
+          <div class="an-kpi-row an-kpi-row--single">
             <div class="card an-kpi-card">
               <div class="an-kpi-card__icon"><i class="ti ti-eye" aria-hidden="true"></i></div>
               <div class="an-kpi-card__label">Total Job Views (all jobs)</div>
@@ -152,7 +167,9 @@
               <div class="an-chart-card__header">
                 <h3>Views by Job (top 10)</h3>
               </div>
-              <canvas id="views-by-job-chart" height="220"></canvas>
+              <div class="an-chart-box an-chart-box--tall">
+                <canvas id="views-by-job-chart"></canvas>
+              </div>
             </div>
           </div>
 
@@ -200,15 +217,15 @@
 
         </div>
 
-      </main>
+      </div>
 
-    </div>
+    </main>
 
   </div>
 
   <script src="Scripts/config.js"></script>
-  <script src="Scripts/Layouts/companyLayout.js"></script>
-  <script src="Scripts/jobInsights.js"></script>
+  <script src="Scripts/sidebar.js"></script>
   <script src="Scripts/toast.js"></script>
+  <script src="Scripts/jobInsights.js"></script>
 </body>
 </html>

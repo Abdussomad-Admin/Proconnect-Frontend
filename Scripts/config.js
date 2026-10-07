@@ -190,4 +190,17 @@ markAllNotificationsRead: `${API_BASE_URL}/Notifications/mark-all-read`,
   getEventDetails: `${API_BASE_URL}/Event/`,
   getMyEvents: `${API_BASE_URL}/Event/my-events`,
   getEventAttendees: `${API_BASE_URL}/Event/attendees`,
+
+    // ---- Admin (Module 11) ----
+  adminDashboard: `${API_BASE_URL}/admin/dashboard`,
+  adminUsers: `${API_BASE_URL}/admin/users`,
+  adminCompanies: `${API_BASE_URL}/admin/companies`,
+  adminJobs: `${API_BASE_URL}/admin/jobs`,
+  adminPosts: `${API_BASE_URL}/admin/posts`,
+  adminReports: `${API_BASE_URL}/admin/reports`,
+  adminActivityLogs: `${API_BASE_URL}/admin/activity-logs`,
+  adminSystemHealth: `${API_BASE_URL}/admin/system-health`,
+  adminEvents: `${API_BASE_URL}/admin/events`,
+  adminAnalytics: `${API_BASE_URL}/admin/analytics`,
 };
+

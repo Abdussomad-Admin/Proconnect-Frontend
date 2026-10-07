@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const alertBox = document.getElementById("form-alert");
   const urlJobId = new URLSearchParams(window.location.search).get("jobId") || "";
 
   let currentJobId = urlJobId;
@@ -18,8 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let viewsByJobChart = null;
 
   function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
+    showToast(message, "error");
   }
 
   function escapeHtml(str) {
@@ -35,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   function statusBadge(status) {
-    return `<span class="jm-status-badge ${STATUS_BADGE_CLASS[status] || "jm-status-badge--new"}">${status}</span>`;
+    return `<span class="jm-status-badge ${STATUS_BADGE_CLASS[status] || "jm-status-badge--new"}">${escapeHtml(status)}</span>`;
   }
 
   function formatDate(dateStr) {
@@ -386,13 +384,18 @@ document.addEventListener("DOMContentLoaded", async () => {
           data: byJob.map((j) => j.viewCount),
           backgroundColor: "#5B3FE0",
           borderRadius: 4,
+          barThickness: 18,
         }],
       },
       options: {
         indexAxis: "y",
         responsive: true,
+        maintainAspectRatio: false,
         plugins: { legend: { display: false } },
-        scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
+        scales: {
+          x: { beginAtZero: true, ticks: { stepSize: 1 } },
+          y: { grid: { display: false } },
+        },
       },
     });
   }

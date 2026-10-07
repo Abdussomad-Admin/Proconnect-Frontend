@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Events · ProConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="Styles/admin-layout.css" />
+  <link rel="stylesheet" href="Styles/admin-common.css" />
+</head>
+
+<body
+  data-page="admin-events"
+  data-title="Events"
+  data-subtitle="Manage and monitor all events on the platform."
+  data-icon="ti-calendar-event">
+
+  <main id="admin-content">
+    <div class="ad-tabs" id="ad-status-tabs">
+      <button class="ad-tab is-active" data-status="">All</button>
+      <button class="ad-tab" data-status="Published">Published</button>
+      <button class="ad-tab" data-status="Draft">Draft</button>
+      <button class="ad-tab" data-status="Cancelled">Cancelled</button>
+      <button class="ad-tab" data-status="Completed">Completed</button>
+    </div>
+
+    <div class="ad-filterbar">
+      <label class="ad-filter-search">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <input type="search" id="ad-search" placeholder="Search by title or description..." />
+      </label>
+
+      <input type="text" class="ad-select" id="ad-location" placeholder="Location" style="width:150px;" />
+
+      <select class="ad-select" id="ad-page-size">
+        <option value="10">10 / page</option>
+        <option value="25">25 / page</option>
+        <option value="50">50 / page</option>
+      </select>
+    </div>
+
+    <div class="ad-card">
+      <div class="ad-table-wrap">
+        <table class="ad-table">
+          <thead>
+            <tr><th>Event</th><th>Company</th><th>Type</th><th>Location</th><th>Starts</th><th>Registered</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="ad-rows">
+            <tr class="ad-skeleton-row"><td colspan="8"><div class="ad-skeleton"></div></td></tr>
+            <tr class="ad-skeleton-row"><td colspan="8"><div class="ad-skeleton"></div></td></tr>
+            <tr class="ad-skeleton-row"><td colspan="8"><div class="ad-skeleton"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ad-pagination" id="ad-pagination"></div>
+    </div>
+  </main>
+
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/adminLayout.js"></script>
+  <script>
+    const state = { search: "", status: "", location: "", pageNumber: 1, pageSize: 10 };
+    let searchDebounce = null, locationDebounce = null;
+
+    function authHeaders() {
+      const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    }
+    function esc(v) { return String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+    function fmtDate(iso) { return iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"; }
+
+    const STATUS_BADGE = { Draft: "", Published: "success", Cancelled: "danger", Completed: "info" };
+    function statusBadge(status) {
+      const tone = STATUS_BADGE[status] ?? "";
+      return `<span class="ad-badge${tone ? ` ad-badge--${tone}` : ""}">${esc(status)}</span>`;
+    }
+    function actionsFor(status) {
+      const actions = [];
+      if (status === "Draft") actions.push({ action: "publish", label: "Publish", icon: "ti-circle-check" });
+      if (status !== "Cancelled" && status !== "Completed") actions.push({ action: "cancel", label: "Cancel Event", icon: "ti-x", danger: true });
+      return actions;
+    }
+
+    async function fetchList() {
+      const params = new URLSearchParams();
+      if (state.search) params.set("search", state.search);
+      if (state.status) params.set("status", state.status);
+      if (state.location) params.set("location", state.location);
+      params.set("pageNumber", state.pageNumber);
+      params.set("pageSize", state.pageSize);
+      params.set("usePaging", "true");
+
+      const res = await fetch(`${API_ROUTES.adminEvents}?${params.toString()}`, { headers: authHeaders() });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) throw new Error(body.message || "Failed to load events");
+      return body.data;
+    }
+
+    async function performAction(eventId, action) {
+      const reason = prompt("Reason / note (optional):") || null;
+      const res = await fetch(`${API_ROUTES.adminEvents}/${eventId}/${action}`, {
+        method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ reason }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) { alert(body.message || "Action failed"); return; }
+      load();
+    }
+
+    function renderRows(items) {
+      const tbody = document.getElementById("ad-rows");
+      if (!items || items.length === 0) { tbody.innerHTML = `<tr><td colspan="8"><div class="ad-empty">No events match these filters.</div></td></tr>`; return; }
+
+      tbody.innerHTML = items.map(e => `
+        <tr>
+          <td><strong>${esc(e.title)}</strong></td>
+          <td>
+            <div class="ad-cell-user is-square">
+              ${e.companyLogoUrl ? `<img src="${esc(e.companyLogoUrl)}" alt="" />` : `<span class="ad-fallback">${esc((e.companyName || "?").charAt(0).toUpperCase())}</span>`}
+              <div><strong>${esc(e.companyName)}</strong></div>
+            </div>
+          </td>
+          <td>${esc(e.eventType)}</td>
+          <td>${esc(e.locationType)}${e.location ? ` &middot; ${esc(e.location)}` : ""}</td>
+          <td>${fmtDate(e.startDateTime)}</td>
+          <td>${e.registeredCount}${e.attendeeLimit ? ` / ${e.attendeeLimit}` : ""}</td>
+          <td>${statusBadge(e.status)}</td>
+          <td>
+            <div class="ad-row-actions">
+              <button type="button" class="ad-row-toggle" data-id="${e.eventId}" aria-label="Actions"><i class="ti ti-dots-vertical" aria-hidden="true"></i></button>
+              <div class="ad-row-menu" data-menu-for="${e.eventId}">
+                <a href="admin-event-details.html?id=${e.eventId}"><i class="ti ti-eye" aria-hidden="true"></i> View Details</a>
+                ${actionsFor(e.status).map(a => `<button type="button" class="item${a.danger ? " is-danger" : ""}" data-action="${a.action}" data-id="${e.eventId}"><i class="ti ${a.icon}" aria-hidden="true"></i> ${a.label}</button>`).join("")}
+              </div>
+            </div>
+          </td>
+        </tr>`).join("");
+
+      tbody.querySelectorAll(".ad-row-toggle").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const menu = tbody.querySelector(`.ad-row-menu[data-menu-for="${btn.dataset.id}"]`);
+          tbody.querySelectorAll(".ad-row-menu.is-open").forEach(m => { if (m !== menu) m.classList.remove("is-open"); });
+          menu.classList.toggle("is-open");
+        });
+      });
+      tbody.querySelectorAll(".ad-row-menu button.item").forEach(btn => btn.addEventListener("click", () => performAction(btn.dataset.id, btn.dataset.action)));
+    }
+
+    function renderPagination(pageNumber, pageSize, totalCount) {
+      const el = document.getElementById("ad-pagination");
+      const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+      const from = totalCount === 0 ? 0 : (pageNumber - 1) * pageSize + 1;
+      const to = Math.min(pageNumber * pageSize, totalCount);
+      const pages = [];
+      for (let p = 1; p <= Math.min(5, totalPages); p++) pages.push(p);
+      if (totalPages > 6) pages.push("…");
+      if (totalPages > 5) pages.push(totalPages);
+
+      el.innerHTML = `
+        <span>Showing ${from.toLocaleString()}–${to.toLocaleString()} of ${totalCount.toLocaleString()}</span>
+        <div class="ad-pagination__pages">
+          <button type="button" data-page="${pageNumber - 1}" ${pageNumber <= 1 ? "disabled" : ""}><i class="ti ti-chevron-left"></i></button>
+          ${pages.map(p => p === "…" ? `<span>…</span>` : `<button type="button" data-page="${p}" class="${p === pageNumber ? "is-current" : ""}">${p}</button>`).join("")}
+          <button type="button" data-page="${pageNumber + 1}" ${pageNumber >= totalPages ? "disabled" : ""}><i class="ti ti-chevron-right"></i></button>
+        </div>`;
+      el.querySelectorAll("button[data-page]").forEach(btn => btn.addEventListener("click", () => { state.pageNumber = Number(btn.dataset.page); load(); }));
+    }
+
+    async function load() {
+      const tbody = document.getElementById("ad-rows");
+      tbody.innerHTML = `<tr class="ad-skeleton-row"><td colspan="8"><div class="ad-skeleton"></div></td></tr>`.repeat(3);
+      try {
+        const data = await fetchList();
+        renderRows(data.items);
+        renderPagination(data.pageNumber, data.pageSize, data.totalCount);
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8"><div class="ad-empty" style="color:#D64545;">Couldn't load events: ${esc(err.message)}</div></td></tr>`;
+        document.getElementById("ad-pagination").innerHTML = "";
+      }
+    }
+
+    document.getElementById("ad-status-tabs").addEventListener("click", (e) => {
+      const btn = e.target.closest(".ad-tab");
+      if (!btn) return;
+      document.querySelectorAll("#ad-status-tabs .ad-tab").forEach(t => t.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      state.status = btn.dataset.status;
+      state.pageNumber = 1;
+      load();
+    });
+    document.getElementById("ad-page-size").addEventListener("change", (e) => { state.pageSize = Number(e.target.value); state.pageNumber = 1; load(); });
+    document.getElementById("ad-search").addEventListener("input", (e) => {
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => { state.search = e.target.value.trim(); state.pageNumber = 1; load(); }, 350);
+    });
+    document.getElementById("ad-location").addEventListener("input", (e) => {
+      clearTimeout(locationDebounce);
+      locationDebounce = setTimeout(() => { state.location = e.target.value.trim(); state.pageNumber = 1; load(); }, 350);
+    });
+    document.addEventListener("click", () => document.querySelectorAll(".ad-row-menu.is-open").forEach(m => m.classList.remove("is-open")));
+
+    load();
+  </script>
+</body>
+</html>

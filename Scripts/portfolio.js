@@ -283,7 +283,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || result.status === false) {
-        alert(result.message || "Couldn't save this link.");
+        showToast(result.message || "Couldn't save this link.", "error");
         return;
       }
 
@@ -291,7 +291,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await reload();
 
     } catch (err) {
-      alert("Couldn't reach the server. Check your connection and try again.");
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = "Save";
@@ -313,13 +313,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || result.status === false) {
-        alert(result.message || "Couldn't delete this link.");
+        showToast(result.message || "Couldn't delete this link.", "error");
         return;
       }
 
       await reload();
     } catch (err) {
-      alert("Couldn't reach the server. Check your connection and try again.");
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     }
   }
 

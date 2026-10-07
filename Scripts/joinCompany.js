@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const alertBox = document.getElementById("form-alert");
   const codeInput = document.getElementById("invitationCode");
 
   const verifyBtn = document.getElementById("verify-btn");
@@ -20,14 +19,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
+    showToast(message, "error");
   }
 
-  function hideAlert() {
-    alertBox.hidden = true;
-    alertBox.textContent = "";
-  }
+  // No-op now — toasts auto-dismiss themselves, so there's no persistent
+  // alert box left to hide.
+  function hideAlert() {}
 
   function setFieldError(fieldId, message) {
     const input = document.getElementById(fieldId);

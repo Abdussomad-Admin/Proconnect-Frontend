@@ -1,10 +1,10 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const loadingState = document.getElementById("loading-state");
-  const alertBox = document.getElementById("form-alert");
   const layout = document.getElementById("profile-view-layout");
 
   const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
   const viewerUserId = localStorage.getItem("pc_user_id");
+
 
   const params = new URLSearchParams(window.location.search);
   const profileId = params.get("id"); // ProfessionalProfile.Id or RecruiterProfile.Id — NOT User.Id
@@ -13,9 +13,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   let profile = null;
   let isProfessional = profileType ? profileType === "professional" : true;
 
+  // Routes to the global toast (Scripts/toast.js) instead of the old
+  // #form-alert div; call sites are unchanged.
   function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.hidden = false;
+    showToast(message, "error");
   }
 
   function escapeHtml(str) {
@@ -489,14 +490,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         } else if (message.includes("already pending")) {
           setConnectButtonState("Pending");
         } else {
-          alert(result.message || "Couldn't send connection request.");
+          showToast(result.message || "Couldn't send connection request.", "error");
         }
         return;
       }
 
       setConnectButtonState("Pending");
     } catch (err) {
-      alert("Couldn't reach the server. Check your connection and try again.");
+      showToast("Couldn't reach the server. Check your connection and try again.", "error");
     }
   }
 

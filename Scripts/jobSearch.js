@@ -8,8 +8,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const alertBox = document.getElementById("form-alert");
-
   let mode = "all"; // "all" | "recommended"
   let currentPage = 1;
   const pageSize = 10;
@@ -25,11 +23,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
+  // Thin wrapper kept so every existing showAlert(message, isSuccess) call
+  // site below didn't need touching — now routes to the global toast
+  // (auto-dismisses on its own, so the old setTimeout hide is gone too).
   function showAlert(message, isSuccess = false) {
-    alertBox.textContent = message;
-    alertBox.classList.toggle("form-alert--success", isSuccess);
-    alertBox.hidden = false;
-    setTimeout(() => { alertBox.hidden = true; }, 4000);
+    showToast(message, isSuccess ? "success" : "error");
   }
 
   function employmentLabel(type) {
