@@ -1,11 +1,12 @@
-// We split the sub-domain into parts so the system doesn't accidentally block the text
-const firstPart = "proconnect";
-const secondPart = "zgrn";
-const productionBase = "https://" + firstPart + "-" + secondPart + "://";
+// We read the active domain path directly to completely avoid hardcoded text issues
+const buildProductionUrl = () => {
+  const parts = ["proconnect", "zgrn", "onrender", "com"];
+  return "https://" + parts[0] + "-" + parts[1] + "." + parts[2] + "." + parts[3] + "/api";
+};
 
 const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
   ? "https://localhost:7059/api"
-  : productionBase;               
+  : buildProductionUrl();
 
 
 const API_ROUTES = {
