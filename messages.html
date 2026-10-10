@@ -41,7 +41,7 @@
 
       <div class="app-content messages-content">
 
-        <div class="messages-shell">
+        <div class="messages-shell" id="messages-shell">
 
           <!-- Left pane: conversation list -->
           <aside class="messages-list-pane">
@@ -82,6 +82,9 @@
 
             <div class="chat-thread" id="chat-thread" hidden>
               <header class="chat-thread__header">
+                <button type="button" class="chat-back-btn" id="chat-back-btn" aria-label="Back to conversations">
+                  <i class="ti ti-arrow-left" aria-hidden="true"></i>
+                </button>
                 <div class="chat-thread__header-user">
                   <div id="chat-header-avatar"></div>
                   <div>

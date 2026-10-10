@@ -1,4 +1,7 @@
-const API_BASE_URL = "https://localhost:7059/api";
+const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "https://localhost:7059/api"
+  : "https://onrender.com";
+
 
 const API_ROUTES = {
   // ---- Auth ----

@@ -10,10 +10,15 @@
   box-sizing: border-box;
 }
 
+/* Switched from CSS Grid to Flexbox. With grid, hiding the list pane at
+   narrow widths could leave the chat pane stuck at its old grid-track
+   width instead of claiming the full row — flex avoids that entirely:
+   a hidden sibling (display:none) is removed from the flow, and
+   .chat-pane's flex:1 automatically fills whatever space remains. */
 .messages-shell {
-  display: grid;
-  grid-template-columns: 340px 1fr;
+  display: flex;
   height: 100%;
+  min-height: 0;
   background: var(--pc-surface);
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-lg);
@@ -23,6 +28,8 @@
 /* ---------- Left pane: conversation list ---------- */
 
 .messages-list-pane {
+  width: 340px;
+  flex-shrink: 0;
   border-right: 1px solid var(--pc-border);
   display: flex;
   flex-direction: column;
@@ -191,9 +198,11 @@
 /* ---------- Right pane: chat ---------- */
 
 .chat-pane {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  min-width: 0;
 }
 
 .chat-empty-state {
@@ -246,12 +255,38 @@
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--pc-border);
   flex-shrink: 0;
+  gap: 10px;
+}
+
+/* Back-to-conversations button — only ever shown on phone-sized screens,
+   and only once a conversation is open there (see the media query below
+   and messages.js's is-mobile-chat-open toggling). Invisible/non-existent
+   in the layout above the breakpoint. */
+.chat-back-btn {
+  display: none;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  color: var(--pc-text-secondary);
+  font-size: 18px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.chat-back-btn:hover {
+  background: var(--pc-panel-bg);
 }
 
 .chat-thread__header-user {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .chat-thread__header-avatar-wrap {
@@ -309,6 +344,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .chat-menu-wrap {
@@ -367,6 +403,7 @@
 
 .chat-thread__messages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 1.25rem;
   display: flex;
@@ -527,7 +564,7 @@
   position: relative;
 }
 
-/* ---------- Typing indicator (static placeholder until SignalR is wired) ---------- */
+/* ---------- Typing indicator ---------- */
 
 .chat-typing-indicator {
   display: flex;
@@ -902,32 +939,32 @@
 .toast--error i { color: var(--pc-danger); }
 .toast--info i { color: var(--pc-purple); }
 
-/* ---------- Responsive ---------- */
+/* ==========================================================================
+   Responsive — phone-only breakpoint (640px), not tablet/narrow-desktop.
+   Above this width, list pane and chat pane always show side by side,
+   same as desktop, regardless of screen size.
+   ========================================================================== */
 
-@media (max-width: 900px) {
-  .messages-shell {
-    grid-template-columns: 1fr;
+@media (max-width: 640px) {
+  /* List pane visible by default on phones; hidden once a conversation
+     is opened (JS adds .is-mobile-chat-open to .messages-shell). */
+  .chat-pane {
+    display: none;
+  }
+
+  .messages-shell.is-mobile-chat-open .messages-list-pane {
+    display: none;
+  }
+
+  .messages-shell.is-mobile-chat-open .chat-pane {
+    display: flex;
+  }
+
+  .chat-back-btn {
+    display: flex;
   }
 
   .messages-list-pane {
-    display: none;
+    width: 100%;
   }
-}
-
-.chat-pane {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;   /* add this */
-}
-
-.messages-shell {
-  display: grid;
-  grid-template-columns: 340px 1fr;
-  height: 100%;
-  min-height: 0;   /* add this */
-  background: var(--pc-surface);
-  border: 1px solid var(--pc-border);
-  border-radius: var(--pc-radius-lg);
-  overflow: hidden;
 }

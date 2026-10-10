@@ -14,6 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // not under /api like every REST route — strip the trailing /api.
   const HUB_BASE_URL = API_BASE_URL.replace(/\/api\/?$/, "");
 
+  // Below this width (phone-sized, not tablet/narrow-desktop), opening a
+  // conversation hides the list pane and shows only the chat pane, with
+  // a back button to return. Matches the @media (max-width: 640px) rule
+  // in messages.css.
+  const MOBILE_CHAT_BREAKPOINT = 640;
+
   let activeConversationId = null;
   let allConversations = [];
   let oldestLoadedMessagePage = 1;
@@ -73,10 +79,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   }
 
-  // NOTE: showToast is now the global one from Scripts/toast.js (loaded via
-  // a <script> tag on this page) — the local duplicate that used to live
-  // here (rendering into a #toast-stack div) has been removed. Its default
-  // type ("info") already matched the global default.
+  // NOTE: showToast is the global one from Scripts/toast.js (loaded via a
+  // <script> tag on this page) — no local duplicate here.
 
   function extractErrorMessage(result) {
     if (result?.message) return result.message;
@@ -104,6 +108,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Topbar name/avatar/dropdown/logout are handled centrally by
   // sidebar.js's renderTopbarUserInfo() — no per-page duplicate needed here.
+
+  // ---------------- Mobile list/chat pane toggle ----------------
+  // On phone-sized screens, opening a conversation hides the list and
+  // shows only the chat pane (with a back button). Above the breakpoint
+  // this is a no-op — both panes always show side by side via CSS.
+
+  function openMobileChatView() {
+    if (window.innerWidth > MOBILE_CHAT_BREAKPOINT) return;
+    const shell = document.getElementById("messages-shell");
+    if (shell) shell.classList.add("is-mobile-chat-open");
+  }
+
+  function closeMobileChatView() {
+    const shell = document.getElementById("messages-shell");
+    if (shell) shell.classList.remove("is-mobile-chat-open");
+  }
+
+  const chatBackBtn = document.getElementById("chat-back-btn");
+  if (chatBackBtn) {
+    chatBackBtn.addEventListener("click", closeMobileChatView);
+  }
 
   // ==========================================================================
   // SignalR connection
@@ -387,6 +412,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".conversation-row").forEach((r) => {
       r.classList.toggle("is-active", r.dataset.conversationId === conversationId);
     });
+
+    // On phone-sized screens, swap to the chat-only view with a back
+    // button. No-op above the breakpoint (both panes already visible).
+    openMobileChatView();
 
     const conversation = allConversations.find((c) => c.id === conversationId);
     if (conversation) {
@@ -710,6 +739,8 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("chat-thread").hidden = true;
         document.getElementById("chat-empty-state").hidden = false;
         activeConversationId = null;
+        // Back to the conversation list on phone-sized screens too.
+        closeMobileChatView();
       }
 
       loadConversations();
