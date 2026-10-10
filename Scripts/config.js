@@ -1,10 +1,8 @@
-// A clean, simple string combination to construct your specific backend URL perfectly
-const backendHost = "://onrender.com";
 const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
   ? "https://localhost:7059/api"
-  : "https://" + backendHost + "/api";
+  : "https://onrender.com";
 
-  
+
 const API_ROUTES = {
   // ---- Auth ----
   register: `${API_BASE_URL}/auth/register`,
