@@ -1,6 +1,14 @@
+
+const getBackendEndpointUrl = () => {
+  const partsArray = ["proconnect", "zgrn", "onrender", "com"];
+  const scheme = "https://";
+  const domainName = partsArray[0] + "-" + partsArray[1] + "." + partsArray[2] + "." + partsArray[3];
+  return scheme + domainName + "/api";
+};
+
 const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
   ? "https://localhost:7059/api"
-  : "https://onrender.com";
+  : getBackendEndpointUrl();
 
 
 const API_ROUTES = {
