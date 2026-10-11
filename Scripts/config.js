@@ -207,5 +207,6 @@ markAllNotificationsRead: `${API_BASE_URL}/Notifications/mark-all-read`,
   adminSystemHealth: `${API_BASE_URL}/admin/system-health`,
   adminEvents: `${API_BASE_URL}/admin/events`,
   adminAnalytics: `${API_BASE_URL}/admin/analytics`,
+  adminProfile: `${API_BASE_URL}/admin/profile`,
 };
 

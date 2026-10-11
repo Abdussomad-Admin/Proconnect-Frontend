@@ -121,19 +121,20 @@ document.addEventListener("DOMContentLoaded", () => {
     setLoading(true);
 
     try {
-      const response = await fetch(API_ROUTES.register, {
+            const response = await fetch(API_ROUTES.register, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          firstName: payload.firstName,
-          lastName: payload.lastName,
-          username: payload.username,
-          email: payload.email,
-          tel: payload.phoneNumber,
-          password: payload.password,
-          confirmPassword: payload.confirmPassword,
+          FirstName: payload.firstName,
+          LastName: payload.lastName,
+          UserName: payload.username,
+          Email: payload.email,
+          Tel: payload.phoneNumber,
+          Password: payload.password,
+          ConfirmPassword: payload.confirmPassword,
         }),
       });
+
 
       const result = await response.json().catch(() => ({}));
 

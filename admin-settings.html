@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Settings · ProConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="Styles/admin-layout.css" />
+  <link rel="stylesheet" href="Styles/admin-common.css" />
+  <style>
+    .ad-form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 16px; }
+    .ad-form-grid .is-full { grid-column: 1 / -1; }
+    @media (max-width: 640px) { .ad-form-grid { grid-template-columns: 1fr; } }
+
+    .ad-field label { display: block; font-size: 12px; font-weight: 600; color: var(--ad-text); margin-bottom: 5px; }
+    .ad-field .req { color: #D64545; }
+    .ad-field input, .ad-field textarea {
+      width: 100%; padding: 0 12px; height: 40px; border: 1px solid var(--ad-border);
+      border-radius: var(--ad-radius); font: 400 13px var(--ad-font); color: var(--ad-text); background: var(--ad-surface);
+    }
+    .ad-field textarea { height: auto; min-height: 96px; padding: 10px 12px; resize: vertical; }
+    .ad-field input:focus, .ad-field textarea:focus { outline: none; border-color: var(--ad-purple); box-shadow: 0 0 0 3px var(--ad-purple-light); }
+    .ad-field input[readonly] { background: var(--ad-page); color: var(--ad-text-muted); cursor: not-allowed; }
+    .ad-field__hint { display: block; font-size: 11px; color: var(--ad-text-muted); margin-top: 4px; }
+
+    .ad-form-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 18px; }
+    .ad-save-btn {
+      height: 40px; padding: 0 22px; border: none; border-radius: var(--ad-radius); background: var(--ad-purple);
+      color: #fff; font: 600 13px var(--ad-font); cursor: pointer;
+    }
+    .ad-save-btn:hover { opacity: 0.92; }
+    .ad-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .ad-form-message { font-size: 12.5px; margin-right: auto; }
+    .ad-form-message.is-success { color: #1F9254; }
+    .ad-form-message.is-error { color: #D64545; }
+  </style>
+</head>
+
+<body
+  data-page="admin-settings"
+  data-title="Settings"
+  data-subtitle="Manage your administrator account details."
+  data-icon="ti-settings">
+
+  <main id="admin-content">
+    <div id="ad-profile-banner"><div class="ad-card"><div class="ad-skeleton" style="height:80px;"></div></div></div>
+
+    <div class="ad-detail-split">
+      <div class="ad-card">
+        <h3 style="margin:0 0 14px; font-size:15px; color:var(--ad-heading);">Edit Details</h3>
+        <form id="ad-profile-form" novalidate>
+          <div class="ad-form-grid">
+            <div class="ad-field">
+              <label for="ad-first-name">First name <span class="req">*</span></label>
+              <input type="text" id="ad-first-name" autocomplete="given-name" />
+            </div>
+            <div class="ad-field">
+              <label for="ad-last-name">Last name <span class="req">*</span></label>
+              <input type="text" id="ad-last-name" autocomplete="family-name" />
+            </div>
+            <div class="ad-field">
+              <label for="ad-tel">Phone</label>
+              <input type="tel" id="ad-tel" autocomplete="tel" />
+            </div>
+            <div class="ad-field">
+              <label for="ad-location">Location</label>
+              <input type="text" id="ad-location" autocomplete="address-level2" />
+            </div>
+            <div class="ad-field is-full">
+              <label for="ad-bio">Bio</label>
+              <textarea id="ad-bio"></textarea>
+            </div>
+          </div>
+
+          <div class="ad-form-actions">
+            <span class="ad-form-message" id="ad-form-message" role="status" aria-live="polite"></span>
+            <button type="submit" class="ad-save-btn" id="ad-save">Save Changes</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="ad-card">
+        <h3 style="margin:0 0 14px; font-size:15px; color:var(--ad-heading);">Account</h3>
+        <div id="ad-account-info"><div class="ad-skeleton" style="height:140px;"></div></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="Scripts/config.js"></script>
+  <script src="Scripts/adminLayout.js"></script>
+  <script>
+    function authHeaders() {
+      const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    }
+    function esc(v) { return String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+    function fmtDate(iso) { return iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"; }
+
+    async function fetchProfile() {
+      const res = await fetch(API_ROUTES.adminProfile, { headers: authHeaders() });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.status === false) throw new Error(body.message || "Failed to load profile");
+      return body.data;
+    }
+
+    function renderBanner(p) {
+      const fullName = `${p.firstName} ${p.lastName}`.trim();
+      const avatar = p.profilePictureUrl
+        ? `<img class="ad-detail-banner__photo" src="${esc(p.profilePictureUrl)}" alt="" />`
+        : `<span class="ad-detail-banner__photo ad-fallback" style="display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--ad-purple);">${esc((fullName || "?").charAt(0).toUpperCase())}</span>`;
+
+      document.getElementById("ad-profile-banner").innerHTML = `
+        <div class="ad-card ad-detail-banner">
+          ${avatar}
+          <div class="ad-detail-banner__info">
+            <div class="ad-detail-banner__name-row">
+              <h2>${esc(fullName)}</h2>
+              <span class="ad-badge ad-badge--purple">Platform Administrator</span>
+            </div>
+            <div class="ad-detail-banner__sub">${esc(p.email)}</div>
+            <div class="ad-detail-banner__meta">
+              ${p.location ? `<span><i class="ti ti-map-pin"></i>${esc(p.location)}</span>` : ""}
+              <span><i class="ti ti-calendar"></i>Joined ${fmtDate(p.joinedAt)}</span>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderAccount(p) {
+      document.getElementById("ad-account-info").innerHTML = `
+        <dl class="ad-field-grid" style="grid-template-columns:1fr;">
+          <div><dt>Email</dt><dd>${esc(p.email)}</dd></div>
+          <div><dt>Username</dt><dd>@${esc(p.userName)}</dd></div>
+          <div><dt>Status</dt><dd><span class="ad-badge ad-badge--success">${esc(p.status)}</span></dd></div>
+          <div><dt>Email verified</dt><dd>${p.isVerified ? "Yes" : "No"}</dd></div>
+          <div><dt>Member since</dt><dd>${fmtDate(p.joinedAt)}</dd></div>
+        </dl>
+        <p style="margin:14px 0 0; font-size:11.5px; color:var(--ad-text-muted);">Email and username can't be changed from this page.</p>`;
+    }
+
+    function fillForm(p) {
+      document.getElementById("ad-first-name").value = p.firstName || "";
+      document.getElementById("ad-last-name").value = p.lastName || "";
+      document.getElementById("ad-tel").value = p.tel || "";
+      document.getElementById("ad-location").value = p.location || "";
+      document.getElementById("ad-bio").value = p.bio || "";
+    }
+
+    function setMessage(text, kind) {
+      const el = document.getElementById("ad-form-message");
+      el.textContent = text;
+      el.className = `ad-form-message${kind ? ` is-${kind}` : ""}`;
+    }
+
+    async function loadProfile() {
+      const p = await fetchProfile();
+      renderBanner(p);
+      renderAccount(p);
+      fillForm(p);
+    }
+
+    document.getElementById("ad-profile-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const firstName = document.getElementById("ad-first-name").value.trim();
+      const lastName = document.getElementById("ad-last-name").value.trim();
+
+      if (!firstName || !lastName) {
+        setMessage("First name and last name are required.", "error");
+        return;
+      }
+
+      const saveBtn = document.getElementById("ad-save");
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving...";
+      setMessage("", "");
+
+      try {
+        const res = await fetch(API_ROUTES.adminProfile, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", ...authHeaders() },
+          body: JSON.stringify({
+            firstName,
+            lastName,
+            tel: document.getElementById("ad-tel").value.trim() || null,
+            bio: document.getElementById("ad-bio").value.trim() || null,
+            location: document.getElementById("ad-location").value.trim() || null,
+          }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok || body.status === false) throw new Error(body.message || "Failed to save changes");
+
+        await loadProfile();
+        setMessage("Changes saved.", "success");
+      } catch (err) {
+        setMessage(err.message, "error");
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save Changes";
+      }
+    });
+
+    loadProfile().catch((err) => {
+      document.getElementById("ad-profile-banner").innerHTML =
+        `<div class="ad-card" style="border-color:#D64545; color:#D64545;">Couldn't load your profile: ${esc(err.message)}</div>`;
+      document.getElementById("ad-account-info").innerHTML = "";
+    });
+  </script>
+</body>
+</html>
