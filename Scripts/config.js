@@ -1,9 +1,8 @@
-const hostInstanceName = "proconnect" + "-" + "zgrn";
-const productionBase = "https://" + hostInstanceName + "://";
+let productionUrl = "https" + "://" + "proconnect" + "-" + "zgrn" + "." + "onrender" + ".com" + "/api";
 
 const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
   ? "https://localhost:7059/api"
-  : productionBase;
+  : productionUrl;
 
 
 const API_ROUTES = {
