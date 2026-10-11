@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // No-op now — toasts auto-dismiss themselves, so there's no persistent
   // alert box left to hide.
-  function hideAlert() {}
+  function hideAlert() { }
 
   function setLoading(isLoading) {
     submitBtn.disabled = isLoading;
@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setLoading(true);
 
     try {
-            const response = await fetch(API_ROUTES.register, {
+      const response = await fetch(API_ROUTES.register, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -137,6 +137,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       const result = await response.json().catch(() => ({}));
+      alert("Backend raw object: " + JSON.stringify(result));
+
 
       if (!response.ok) {
         if (result.errors) {
@@ -163,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = "check-email.html";
 
     } catch (err) {
-      showAlert("Couldn't reach the server. Check your connection and try again.");
+      showAlert("System Error: " + err.message); 
     } finally {
       setLoading(false);
     }
