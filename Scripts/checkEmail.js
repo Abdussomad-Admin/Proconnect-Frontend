@@ -9,9 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
   const pendingEmail = params.get("email") || sessionStorage.getItem("pc_pending_email");
 
-  // Nobody is waiting to verify: send them to login, not register.
   if (!pendingEmail) {
-    window.location.replace("login.html");
+    window.location.href = "register.html";
     return;
   }
 
