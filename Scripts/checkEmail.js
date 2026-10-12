@@ -3,15 +3,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const countdownEl = document.getElementById("countdown");
   const resendBtn = document.getElementById("resend-btn");
   const resendLabel = document.getElementById("resend-label");
-  const resendAlert = document.getElementById("resend-alert");
 
   const RESEND_COOLDOWN_SECONDS = 45;
 
   const params = new URLSearchParams(window.location.search);
   const pendingEmail = params.get("email") || sessionStorage.getItem("pc_pending_email");
 
+  // Nobody is waiting to verify: send them to login, not register.
   if (!pendingEmail) {
-    window.location.href = "register.html";
+    window.location.replace("login.html");
     return;
   }
 
@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function tick() {
     secondsLeft -= 1;
-    countdownEl.textContent = formatTime(secondsLeft);
+    countdownEl.textContent = formatTime(Math.max(secondsLeft, 0));
 
     if (secondsLeft <= 0) {
       clearInterval(timerId);
@@ -52,17 +52,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   startCountdown();
 
-  function showResendAlert(message, isError) {
-    resendAlert.textContent = message;
-    resendAlert.hidden = false;
-    resendAlert.style.color = isError ? "var(--pc-danger)" : "var(--pc-purple)";
-    resendAlert.style.background = isError ? "var(--pc-danger-bg)" : "var(--pc-purple-light)";
-  }
-
   resendBtn.addEventListener("click", async () => {
     resendBtn.disabled = true;
     resendBtn.innerHTML = `<span class="spinner"></span><span>Sending...</span>`;
-    resendAlert.hidden = true;
 
     try {
       const url = `${API_ROUTES.resendVerification}?email=${encodeURIComponent(pendingEmail)}`;
@@ -71,14 +63,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        showResendAlert(result.message || "Couldn't resend the email. Please try again.", true);
+        showToast(
+          result.message || "Couldn't resend the email. Please try again.",
+          "error",
+          5000
+        );
         resendBtn.disabled = false;
       } else {
-        showResendAlert("Verification email resent — check your inbox.", false);
+        showToast("Verification email resent. Check your inbox.", "success");
         startCountdown();
       }
     } catch (err) {
-      showResendAlert("Couldn't reach the server. Check your connection and try again.", true);
+      showToast(
+        "Couldn't reach the server. Check your connection and try again.",
+        "error",
+        5000
+      );
       resendBtn.disabled = false;
     } finally {
       resendBtn.innerHTML = `<span class="btn-label">Resend email</span>`;
