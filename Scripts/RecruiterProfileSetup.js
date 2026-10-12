@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const userId = localStorage.getItem("pc_user_id");
 
   if (!userId) {
-    window.location.href = "register.html";
+    window.location.href = "register-user.html";
     return;
   }
 

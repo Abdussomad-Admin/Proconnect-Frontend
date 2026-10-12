@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const pendingEmail = params.get("email") || sessionStorage.getItem("pc_pending_email");
 
   if (!pendingEmail) {
-    window.location.href = "register.html";
+    window.location.href = "login.html";
     return;
   }
 

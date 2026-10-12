@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const email = params.get("email") || sessionStorage.getItem("pc_pending_email");
 
   if (!email) {
-    window.location.href = "register.html";
+    window.location.href = "register-user.html";
     return;
   }
 
