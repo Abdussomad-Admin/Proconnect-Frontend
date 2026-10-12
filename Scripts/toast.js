@@ -1,80 +1,86 @@
-/* ==========================================================================
-   Toast notifications. Include this file (plus Styles/toast.css) on any
-   page, then call:
+document.addEventListener("DOMContentLoaded", () => {
+  const emailEl = document.getElementById("pending-email");
+  const countdownEl = document.getElementById("countdown");
+  const resendBtn = document.getElementById("resend-btn");
+  const resendLabel = document.getElementById("resend-label");
 
-     showToast("message", "success" | "error" | "info")
-     showToast("message", "info", 6000, { title, icon, onClick })
+  const RESEND_COOLDOWN_SECONDS = 45;
 
-   The 4th argument is optional and only needed for richer toasts (e.g.
-   real-time notifications with a bold title and a click-through link):
-     title   - bold first line above the message
-     icon    - tabler icon class (e.g. "ti-bell"); defaults per type
-     onClick - makes the whole toast clickable
+  const params = new URLSearchParams(window.location.search);
+  const pendingEmail = params.get("email") || sessionStorage.getItem("pc_pending_email");
 
-   Creates its own container div on first use — no markup needed in HTML.
-   ========================================================================== */
-
-(function () {
-  function ensureContainer() {
-    let container = document.getElementById("toast-container");
-    if (!container) {
-      container = document.createElement("div");
-      container.id = "toast-container";
-      container.className = "toast-container";
-      document.body.appendChild(container);
-    }
-    return container;
+  if (!pendingEmail) {
+    window.location.href = "register.html";
+    return;
   }
 
-  const ICONS = {
-    success: "ti-circle-check",
-    error: "ti-circle-x",
-    info: "ti-info-circle",
-  };
+  sessionStorage.setItem("pc_pending_email", pendingEmail);
 
-  window.showToast = function (message, type = "info", durationMs = 3500, options = {}) {
-    const container = ensureContainer();
-    const { title, icon, onClick } = options || {};
+  emailEl.textContent = pendingEmail;
 
-    const toast = document.createElement("div");
-    toast.className = `toast toast--${type}`;
-    toast.innerHTML = `
-      <i class="ti ${icon || ICONS[type] || ICONS.info} toast__icon" aria-hidden="true"></i>
-      <span class="toast__message"></span>
-      <button type="button" class="toast__close" aria-label="Dismiss"><i class="ti ti-x" aria-hidden="true"></i></button>
-    `;
+  let secondsLeft = RESEND_COOLDOWN_SECONDS;
+  let timerId = null;
 
-    // textContent / createElement (never innerHTML) for user-supplied text,
-    // so notification titles/messages can't inject markup.
-    const messageEl = toast.querySelector(".toast__message");
-    if (title) {
-      const strong = document.createElement("strong");
-      strong.textContent = title;
-      messageEl.appendChild(strong);
-      messageEl.appendChild(document.createElement("br"));
+  function formatTime(totalSeconds) {
+    const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
+    const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  }
+
+  function tick() {
+    secondsLeft -= 1;
+    countdownEl.textContent = formatTime(Math.max(secondsLeft, 0));
+
+    if (secondsLeft <= 0) {
+      clearInterval(timerId);
+      resendBtn.disabled = false;
+      resendLabel.textContent = "Ready to resend";
+      countdownEl.parentElement.style.display = "none";
     }
-    messageEl.appendChild(document.createTextNode(message));
+  }
 
-    const remove = () => {
-      toast.classList.add("toast--leaving");
-      setTimeout(() => toast.remove(), 200);
-    };
+  function startCountdown() {
+    secondsLeft = RESEND_COOLDOWN_SECONDS;
+    countdownEl.textContent = formatTime(secondsLeft);
+    countdownEl.parentElement.style.display = "block";
+    resendLabel.textContent = "Didn't receive the email?";
+    resendBtn.disabled = true;
+    clearInterval(timerId);
+    timerId = setInterval(tick, 1000);
+  }
 
-    if (typeof onClick === "function") {
-      toast.style.cursor = "pointer";
-      toast.addEventListener("click", (e) => {
-        if (e.target.closest(".toast__close")) return;
-        onClick();
-      });
+  startCountdown();
+
+  resendBtn.addEventListener("click", async () => {
+    resendBtn.disabled = true;
+    resendBtn.innerHTML = `<span class="spinner"></span><span>Sending...</span>`;
+
+    try {
+      const url = `${API_ROUTES.resendVerification}?email=${encodeURIComponent(pendingEmail)}`;
+      const response = await fetch(url, { method: "GET" });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        showToast(
+          result.message || "Couldn't resend the email. Please try again.",
+          "error",
+          5000
+        );
+        resendBtn.disabled = false;
+      } else {
+        showToast("Verification email resent. Check your inbox.", "success");
+        startCountdown();
+      }
+    } catch (err) {
+      showToast(
+        "Couldn't reach the server. Check your connection and try again.",
+        "error",
+        5000
+      );
+      resendBtn.disabled = false;
+    } finally {
+      resendBtn.innerHTML = `<span class="btn-label">Resend email</span>`;
     }
-
-    toast.querySelector(".toast__close").addEventListener("click", remove);
-    container.appendChild(toast);
-
-    // Two-step so the enter transition actually plays (adding the class in
-    // the same frame the element is created skips the transition).
-    requestAnimationFrame(() => toast.classList.add("toast--visible"));
-
-    setTimeout(remove, durationMs);
-  };
-})();
+  });
+});
