@@ -25,6 +25,7 @@
     { label: "System", items: [
       { page: "admin-activity-logs", href: "admin-activity-logs.html", icon: "ti-history", label: "Activity Logs" },
       { page: "admin-analytics", href: "admin-analytics.html", icon: "ti-chart-bar", label: "Analytics" },
+      { page: "admin-settings", href: "admin-settings.html", icon: "ti-settings", label: "Settings" },
     ] },
   ];
 
