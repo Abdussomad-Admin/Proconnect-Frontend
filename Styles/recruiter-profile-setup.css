@@ -1,30 +1,249 @@
-/* ---------- Required field marker ---------- */
+/* =========================================================
+   Recruiter setup — SELF-CONTAINED.
+   Needs only choose-account-type.css before it (for the two-panel
+   card, inputs, buttons). Does NOT need professional-profile-setup.css.
+   ========================================================= */
 
-.required-mark {
-  color: var(--pc-danger);
-  font-weight: 700;
+/* ---------- Wizard card ---------- */
+.auth-card--wizard { max-width: 1100px; }
+
+.auth-card--wizard .auth-form-panel {
+  padding: 2.25rem 2.75rem;
+  max-height: 640px;
+  overflow-y: auto;
 }
 
-/* ---------- Step note (below nav buttons) ---------- */
+/* ---------- Step progress ---------- */
+.step-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 1.75rem;
+}
 
-.step-note {
+.step-progress__item {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  opacity: 0.5;
+  transition: opacity 0.15s ease;
+}
+
+.step-progress__item.is-active,
+.step-progress__item.is-complete { opacity: 1; }
+
+.step-progress__circle {
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--pc-border);
+  background: var(--pc-surface);
   color: var(--pc-text-secondary);
-  margin: 12px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-progress__item.is-active .step-progress__circle {
+  border-color: var(--pc-purple);
+  background: var(--pc-purple);
+  color: #fff;
+}
+
+.step-progress__item.is-complete .step-progress__circle {
+  border-color: var(--pc-purple);
+  background: var(--pc-purple-light);
+  color: var(--pc-purple);
+}
+
+.step-progress__label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--pc-text-primary);
+  white-space: nowrap;
+}
+
+.step-progress__line {
+  width: 40px;
+  height: 1.5px;
+  background: var(--pc-border);
+}
+
+/* ---------- Steps ---------- */
+.form-step { display: none; }
+
+.form-step.is-active {
+  display: block;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ---------- Select + textarea ---------- */
+.field select,
+.field textarea {
+  width: 100%;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius);
+  font-size: 13.5px;
+  font-family: var(--pc-font);
+  color: var(--pc-text-primary);
+  background: var(--pc-surface);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field select { height: 40px; padding: 0 12px; }
+
+.field textarea {
+  padding: 10px 12px;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.field textarea::placeholder { color: var(--pc-text-muted); }
+
+.field select:hover,
+.field textarea:hover { border-color: #C9C7DE; }
+
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--pc-purple);
+  box-shadow: 0 0 0 3px var(--pc-purple-light);
+}
+
+.field select.is-invalid,
+.field textarea.is-invalid { border-color: var(--pc-danger); }
+
+/* "Other (type manually)" box: no icon, so normal left padding */
+.field .other-input {
+  margin-top: 8px;
+  padding-left: 12px;
+}
+
+.required-mark { color: var(--pc-danger); margin-left: 2px; }
+
+/* ---------- Nav buttons ---------- */
+.form-step__nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.form-step__nav .btn-primary { flex: 1; margin-top: 0; }
+
+.btn-outline--inline {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 0 18px;
+  margin-bottom: 0;
+}
+
+/* ---------- Admin toggle ---------- */
+.field .toggle-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+  padding: 10px 12px;
+  margin-bottom: 0;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius);
+  background: var(--pc-surface);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.toggle-field:hover { border-color: #C9C7DE; }
+
+.toggle-field.is-checked {
+  border-color: var(--pc-purple);
+  background: var(--pc-purple-light);
+}
+
+.toggle-field__text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--pc-text-primary);
+}
+
+.toggle-field__icon {
+  font-size: 16px;
+  min-width: 16px;
+  color: var(--pc-text-muted);
+}
+
+.toggle-field.is-checked .toggle-field__icon { color: var(--pc-purple); }
+
+.toggle { display: flex; align-items: center; flex: 0 0 auto; }
+.toggle input { display: none; }
+
+.toggle__track {
+  width: 38px;
+  height: 21px;
+  min-width: 38px;
+  border-radius: 999px;
+  background: var(--pc-border);
+  position: relative;
+  transition: background 0.15s ease;
+}
+
+.toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+}
+
+.toggle input:checked + .toggle__track { background: var(--pc-purple); }
+.toggle input:checked + .toggle__track .toggle__thumb { transform: translateX(17px); }
+
+/* ---------- Notes ---------- */
+.step-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 14px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--pc-text-secondary);
 }
 
 .step-note i {
-  color: var(--pc-text-muted);
-  font-size: 14px;
-}
-
-.step-note--required {
+  font-size: 15px;
+  min-width: 15px;
+  margin-top: 1px;
   color: var(--pc-purple);
 }
 
-.step-note--required i {
-  color: var(--pc-purple);
+.step-note--required i { color: var(--pc-danger); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 760px) {
+  .auth-card--wizard .auth-form-panel { max-height: none; padding: 1.5rem 1.25rem; }
+  .step-progress__label { display: none; }
+}
+
+@media (max-width: 480px) {
+  .form-step__nav { flex-direction: column-reverse; align-items: stretch; }
+  .btn-outline--inline { width: 100%; }
 }
