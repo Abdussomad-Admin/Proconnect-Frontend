@@ -34,6 +34,20 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast(message, "error");
   }
 
+  // Pulls the most useful error text out of an API response: the Result
+  // message first, then the first ASP.NET validation error, then a fallback.
+  function extractError(result, fallback) {
+    if (result && typeof result.message === "string" && result.message) {
+      return result.message;
+    }
+    if (result && result.errors && typeof result.errors === "object") {
+      const first = Object.values(result.errors)[0];
+      const text = Array.isArray(first) ? first[0] : first;
+      if (text) return String(text);
+    }
+    return fallback;
+  }
+
   function isValidUrl(value) {
     try {
       new URL(value);
@@ -212,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || result.status === false) {
-        throw new Error(result.message || "Couldn't save your profile. Please try again.");
+        throw new Error(extractError(result, "Couldn't save your profile. Please try again."));
       }
 
       // Expecting the professional profile ID back in result.data.
@@ -316,18 +330,21 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({
           professionalProfileId,
           companyName,
-          position,
-          description: description || null,
+          jobTitle: position,
+          employmentType: null,
+          location: null,
           startDate,
           endDate,
-          isCurrent,
+          isCurrentJob: isCurrent,
+          description: description || null,
+          createdBy: email || null,
         }),
       });
 
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || result.status === false) {
-        throw new Error(result.message || "Couldn't add this experience.");
+        throw new Error(extractError(result, "Couldn't add this experience."));
       }
 
       renderEntry("list-experience", {
@@ -392,7 +409,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || result.status === false) {
-        throw new Error(result.message || "Couldn't add this education entry.");
+        throw new Error(extractError(result, "Couldn't add this education entry."));
       }
 
       renderEntry("list-education", {
@@ -457,7 +474,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || result.isSuccess === false) {
-        throw new Error(result.message || "Couldn't add this certificate.");
+        throw new Error(extractError(result, "Couldn't add this certificate."));
       }
 
       renderEntry("list-certificate", {
@@ -535,7 +552,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || result.isSuccess === false) {
-        throw new Error(result.message || "Couldn't add this skill.");
+        throw new Error(extractError(result, "Couldn't add this skill."));
       }
 
       renderEntry("list-skill", {
@@ -591,7 +608,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || result.isSuccess === false) {
-        throw new Error(result.message || "Couldn't add this project.");
+        throw new Error(extractError(result, "Couldn't add this project."));
       }
 
       renderEntry("list-project", {
@@ -632,7 +649,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (currentStep === TOTAL_STEPS) {
-      // window.location.href = `dashboard.html?email=${encodeURIComponent(email)}`;
       window.location.href = `profile-overview.html`;
       return;
     }
