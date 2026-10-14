@@ -19,6 +19,7 @@
 
   <script src="Scripts/config.js"></script>
   <script src="Scripts/adminLayout.js"></script>
+  <script src="Scripts/adminModal.js"></script>
   <script>
     function authHeaders() {
       const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
@@ -40,7 +41,7 @@
     }
     function actionsFor(status) {
       const actions = [];
-      if (status === "PendingApproval") actions.push({ action: "approve", label: "Approve Job", icon: "ti-circle-check", kind: "primary" });
+      if (status !== "Active" && status !== "Closed") actions.push({ action: "approve", label: "Set Active", icon: "ti-circle-check", kind: "primary" });
       if (status !== "Closed") actions.push({ action: "close", label: "Close Job", icon: "ti-player-stop", kind: "danger" });
       return actions;
     }
@@ -53,13 +54,22 @@
     }
 
     async function performAction(jobId, action) {
-      const reason = prompt("Reason for this action (optional):") || null;
-      const res = await fetch(`${API_ROUTES.adminJobs}/${jobId}/${action}`, {
-        method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ reason }),
+      const done = await AdminModal.runAction({
+        action,
+        entity: "job",
+        request: async (reason) => {
+          const res = await fetch(`${API_ROUTES.adminJobs}/${jobId}/${action}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ reason }),
+          });
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok || body.status === false) throw new Error(body.message || "Action failed");
+        },
       });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok || body.status === false) { alert(body.message || "Action failed"); return; }
-      render(await fetchJob(getJobId()));
+      if (done) {
+        render(await fetchJob(getJobId()));
+      }
     }
 
     function render(j) {

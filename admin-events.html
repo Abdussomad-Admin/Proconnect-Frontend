@@ -59,6 +59,7 @@
 
   <script src="Scripts/config.js"></script>
   <script src="Scripts/adminLayout.js"></script>
+  <script src="Scripts/adminModal.js"></script>
   <script>
     const state = { search: "", status: "", location: "", pageNumber: 1, pageSize: 10 };
     let searchDebounce = null, locationDebounce = null;
@@ -98,13 +99,22 @@
     }
 
     async function performAction(eventId, action) {
-      const reason = prompt("Reason / note (optional):") || null;
-      const res = await fetch(`${API_ROUTES.adminEvents}/${eventId}/${action}`, {
-        method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ reason }),
+      const done = await AdminModal.runAction({
+        action,
+        entity: "event",
+        request: async (reason) => {
+          const res = await fetch(`${API_ROUTES.adminEvents}/${eventId}/${action}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ reason }),
+          });
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok || body.status === false) throw new Error(body.message || "Action failed");
+        },
       });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok || body.status === false) { alert(body.message || "Action failed"); return; }
-      load();
+      if (done) {
+        load();
+      }
     }
 
     function renderRows(items) {

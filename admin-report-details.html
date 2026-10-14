@@ -25,6 +25,7 @@
 
   <script src="Scripts/config.js"></script>
   <script src="Scripts/adminLayout.js"></script>
+  <script src="Scripts/adminModal.js"></script>
   <script>
     function authHeaders() {
       const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
@@ -56,15 +57,22 @@
     }
 
     async function performAction(reportId, action) {
-      const reason = prompt("Note for this decision (optional):") || null;
-      const res = await fetch(`${API_ROUTES.adminReports}/${reportId}/${action}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify({ reason }),
+      const done = await AdminModal.runAction({
+        action,
+        entity: "report",
+        request: async (reason) => {
+          const res = await fetch(`${API_ROUTES.adminReports}/${reportId}/${action}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ reason }),
+          });
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok || body.status === false) throw new Error(body.message || "Action failed");
+        },
       });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok || body.status === false) { alert(body.message || "Action failed"); return; }
-      render(await fetchReport(getReportId()));
+      if (done) {
+        render(await fetchReport(getReportId()));
+      }
     }
 
     function personCard(label, person, linkBase) {

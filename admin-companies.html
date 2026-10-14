@@ -60,6 +60,7 @@
 
   <script src="Scripts/config.js"></script>
   <script src="Scripts/adminLayout.js"></script>
+  <script src="Scripts/adminModal.js"></script>
   <script>
     const state = { search: "", industry: "", location: "", status: "", pageNumber: 1, pageSize: 10 };
     let searchDebounce = null, industryDebounce = null, locationDebounce = null;
@@ -102,13 +103,22 @@
     }
 
     async function performAction(companyId, action) {
-      const reason = prompt("Reason for this action (optional):") || null;
-      const res = await fetch(`${API_ROUTES.adminCompanies}/${companyId}/${action}`, {
-        method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ reason }),
+      const done = await AdminModal.runAction({
+        action,
+        entity: "company",
+        request: async (reason) => {
+          const res = await fetch(`${API_ROUTES.adminCompanies}/${companyId}/${action}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ reason }),
+          });
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok || body.status === false) throw new Error(body.message || "Action failed");
+        },
       });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok || body.status === false) { alert(body.message || "Action failed"); return; }
-      load();
+      if (done) {
+        load();
+      }
     }
 
     function renderRows(items) {

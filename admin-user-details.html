@@ -19,6 +19,7 @@
 
   <script src="Scripts/config.js"></script>
   <script src="Scripts/adminLayout.js"></script>
+  <script src="Scripts/adminModal.js"></script>
   <script>
     function authHeaders() {
       const token = localStorage.getItem("pc_token") || sessionStorage.getItem("pc_token");
@@ -60,15 +61,22 @@
     }
 
     async function performAction(userId, action) {
-      const reason = prompt("Reason for this action (optional):") || null;
-      const res = await fetch(`${API_ROUTES.adminUsers}/${userId}/${action}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify({ reason }),
+      const done = await AdminModal.runAction({
+        action,
+        entity: "user",
+        request: async (reason) => {
+          const res = await fetch(`${API_ROUTES.adminUsers}/${userId}/${action}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ reason }),
+          });
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok || body.status === false) throw new Error(body.message || "Action failed");
+        },
       });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok || body.status === false) { alert(body.message || "Action failed"); return; }
-      render(await fetchUser(getUserId()));
+      if (done) {
+        render(await fetchUser(getUserId()));
+      }
     }
 
     function render(u) {
