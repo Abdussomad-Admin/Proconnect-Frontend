@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("login-form");
   const btnLogin = document.getElementById("btn-login");
   const loginLabel = document.getElementById("login-label");
-  const btnGoogle = document.getElementById("btn-google");
   const togglePassword = document.getElementById("toggle-password");
   const passwordInput = document.getElementById("password");
   const loginIdInput = document.getElementById("login-id");
@@ -155,13 +154,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ---------------- Google sign-in (placeholder) ----------------
-
-  btnGoogle.addEventListener("click", () => {
-    if (typeof API_ROUTES !== "undefined" && API_ROUTES.googleLogin) {
-      window.location.href = API_ROUTES.googleLogin;
-    } else {
-      showAlert("Google sign-in isn't set up yet.");
-    }
-  });
 });
