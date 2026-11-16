@@ -1,8 +1,10 @@
-let productionUrl = "https" + "://" + "proconnect" + "-" + "zgrn" + "." + "onrender" + ".com" + "/api";
+const PRODUCTION_API_URL = "https://proconnect-zgrn.onrender.com/api";
+const LOCAL_API_URL = "https://localhost:7059/api";
 
-const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-  ? "https://localhost:7059/api"
-  : productionUrl;
+const API_BASE_URL =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? LOCAL_API_URL
+    : PRODUCTION_API_URL;
 
 
 const API_ROUTES = {
@@ -209,4 +211,3 @@ markAllNotificationsRead: `${API_BASE_URL}/Notifications/mark-all-read`,
   adminAnalytics: `${API_BASE_URL}/admin/analytics`,
   adminProfile: `${API_BASE_URL}/admin/profile`,
 };
-
